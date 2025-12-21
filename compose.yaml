@@ -1,0 +1,49 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    container_name: prometheus
+    user: "${UID:-1000}:${GID:-1000}"
+    env_file:
+      - ./prometheus/.env
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus/config:/etc/prometheus
+      - ./prometheus/data:/prometheus
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    container_name: grafana
+    user: "${UID:-1000}:${GID:-1000}"
+    env_file:
+      - ./grafana/.env
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
+
+  unpoller:
+    image: ghcr.io/unpoller/unpoller:latest
+    restart: unless-stopped
+    container_name: unpoller
+    env_file:
+      - ./unpoller/.env
+    ports:
+      - '9130:9130'
+
+# optional log viewer for docker containers
+  dozzle:
+    image: amir20/dozzle:latest
+    restart: unless-stopped
+    container_name: dozzle
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - ./dozzle/.env
+    ports:
+      - '8080:8080'

@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  - job_name: 'unpoller'
+    static_configs:
+      - targets: ['unpoller:9130']
+    scrape_interval: 60s  # if you get 429 errors from UniFi, increase this value to 120s or higher.
+    scrape_timeout: 10s
