@@ -7,7 +7,7 @@ Docker Compose stack for monitoring UniFi networks with UnPoller, Prometheus, an
 1. **Clone and configure**
 
    ```bash
-   git clone git@github.com:timothystewart6/unpoller-unifi.git    
+   git clone https://github.com/timothystewart6/unpoller-unifi.git   
    cd unpoller-UniFi
    ```
 
