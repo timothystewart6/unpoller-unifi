@@ -8,6 +8,10 @@ auth_enabled: false
 server:
   http_listen_port: 3100
   grpc_listen_port: 9096
+  # UnPoller pushes every 2m, the same as Loki's default idle timeout, so the
+  # two race and some pushes fail with "broken pipe" (UnPoller re-sends them
+  # next round). Keeping idle connections open longer stops the noise.
+  http_server_idle_timeout: 5m
   log_level: warn
 
 common:
@@ -33,9 +37,9 @@ schema_config:
         period: 24h
 
 limits_config:
-  # Keep logs for 30 days, then delete them. Increase or decrease to suit
+  # Keep logs for 60 days, then delete them. Increase or decrease to suit
   # your disk space. Retention is enforced by the compactor below.
-  retention_period: 720h
+  retention_period: 1440h
   max_query_series: 50000
 
 compactor:
