@@ -4280,7 +4280,7 @@
         },
         {
           "id": 39,
-          "title": "About zone metrics",
+          "title": "How to read this",
           "type": "text",
           "gridPos": {
             "h": 9,
@@ -4290,7 +4290,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### Zone metrics come from the UniFi Integration API\n\nUnPoller only calls it when it logs in with an API key (`UP_UNIFI_CONTROLLER_0_API_KEY`, UniFi Network 9.3.43 or newer). With a key set, UnPoller uses it in place of the username and password for every request.\n\nZone metrics carry the site's display name (for example `Default`), not the `Default (default)` form used elsewhere, so the Site selector does not filter them.",
+            "content": "### What the numbers mean\n\nEach bar is a firewall zone. The number is **how many networks (VLANs / subnets) are assigned to it**.\n\n- **Internal, Guest-Zone, DNS, Blackhole, untrust**: your LAN networks, grouped by the zone you put them in\n- **External**: your WAN connections, one per internet uplink or WAN-side network\n- **Vpn**: VPN server networks\n- **Gateway**: the UDM itself, always 0 because no network belongs to it\n- **Hotspot, Dmz**: built-in zones you are not using yet\n\nZones you created yourself are *user defined*, the rest come with UniFi. Firewall policies are written between zones, so the *Source zone* and *Destination zone* columns in the Firewall policies table refer to these same zones.\n\nA count that changes means a network was moved between zones. A zone at 0 has no networks, so its policies match nothing.\n\n<small>Source: UniFi Integration API through UnPoller (needs `UP_UNIFI_CONTROLLER_0_API_KEY`).</small>",
             "code": {
               "language": "plaintext",
               "showLineNumbers": false,
