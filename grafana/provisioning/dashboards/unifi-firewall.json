@@ -4209,7 +4209,7 @@
           "id": 38,
           "title": "Networks per firewall zone",
           "type": "bargauge",
-          "description": "Number of networks assigned to each firewall zone. Source: unpoller_firewall_zone_network_count (UniFi Integration API, needs an API key).",
+          "description": "How many networks (VLANs/subnets) are assigned to each firewall zone. External counts your WAN connections; Gateway is the console itself and is always 0. Source: unpoller_firewall_zone_network_count (UniFi Integration API, needs an API key).",
           "gridPos": {
             "h": 9,
             "w": 14,
@@ -4271,7 +4271,7 @@
               },
               "editorMode": "code",
               "expr": "sort_desc(max by (site_name, name, origin) (unpoller_firewall_zone_network_count))",
-              "legendFormat": "{{name}} \u00b7 {{site_name}}",
+              "legendFormat": "{{name}}",
               "range": false,
               "instant": true,
               "refId": "A"
