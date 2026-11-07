@@ -428,6 +428,8 @@ def svg_chart(down, up, kind, start, end, w=658, h=236):
 SECTIONS = [
     ("summary", "Summary", "A few plain-language sentences and anything that needs attention"),
     ("figures", "Headline numbers", "Data downloaded, peak devices, blocks and threats, with the change from last time"),
+    ("downloaded", "Data downloaded", "The Downloaded headline number and the download sentence in the summary"),
+    ("gap_note", "Missing-data note", "A note when metrics weren't collected for part of the period"),
     ("throughput", "Internet throughput chart", "Download and upload over the period"),
     ("internet", "Internet and gateway", "Data used, latency, failovers, internet lines, gateway CPU, memory and temperature"),
     ("devices", "Devices", "Devices online and the ten that used the most data"),
@@ -452,7 +454,7 @@ def summary(d, p, word, covered, on=None):
         tail = (f" It failed over to a backup line {fo:.0f} time{'s' * (fo != 1)}"
                 if fo else " There were no failovers to the backup lines")
         lines.append(f"The main internet line ({prim['name']}) was up {prim['uptime']:.2f}% of the {word}.{tail}.")
-    if d["wan_down"] is not None and on & {"internet", "throughput"}:
+    if d["wan_down"] is not None and "downloaded" in on:
         ch = change(d["wan_down"], p.get("wan_down"), "", word, covered["prom"])
         lines.append(f"The network downloaded {fbytes(d['wan_down'])} and uploaded {fbytes(d['wan_up'])}"
                      + (f" ({ch})" if ch and not ch.startswith("no earlier") else "") + ".")
@@ -520,11 +522,13 @@ def build(kind, end=None, start=None):
 
     # headline numbers follow the sections that are on; if none match, show them all
     figs = [
-        ("Downloaded", fbytes(d["wan_down"]), ch("wan_down"), {"internet", "throughput"}),
+        ("Downloaded", fbytes(d["wan_down"]), ch("wan_down"), {"downloaded"}),
         ("Peak devices online", fnum(d["clients_peak"]), ch("clients_peak"), {"devices", "aps"}),
         ("Blocked from the internet", fnum(d["blocks_in"]), ch("blocks_in", "loki"), {"security"}),
         ("Threats blocked", fnum(d["threats_blocked"]), ch("threats_blocked", "loki"), {"security", "threats"}),
     ]
+    if "downloaded" not in on:
+        figs = figs[1:]  # never show it when unticked, even in the show-all fallback
     figs = [f[:3] for f in figs if f[3] & on] or [f[:3] for f in figs]
     page1 = bool(on & {"summary", "figures", "throughput"})
 

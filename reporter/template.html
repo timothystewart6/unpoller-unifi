@@ -114,11 +114,11 @@ tr { break-inside: avoid; }
 <h1>{% if kind == 'custom' %}Report, {{ title }}{% else %}{{ kind|capitalize }} report, {{ title }}{% endif %}</h1>
 <p class="stamp">{{ dates }} · {{ tzname }} · generated {{ generated.strftime('%-d %b %Y %H:%M') }}</p>
 
-{% if gap > 0.02 and 'summary' not in on %}<p class="note" style="margin:12pt 0 0">Metrics are missing for about {{ (gap * 100)|round|int }}% of this {{ word }} because UnPoller or Prometheus was not collecting. Totals are estimated from the data that exists.</p>{% endif %}
+{% if gap > 0.02 and 'gap_note' in on and 'summary' not in on %}<p class="note" style="margin:12pt 0 0">Metrics are missing for about {{ (gap * 100)|round|int }}% of this {{ word }} because UnPoller or Prometheus was not collecting. Totals are estimated from the data that exists.</p>{% endif %}
 
 {% if 'summary' in on %}
 <section class="summary">
-  {% if gap > 0.02 %}<p class="note" style="margin:0 0 10pt">Metrics are missing for about {{ (gap * 100)|round|int }}% of this {{ word }} because UnPoller or Prometheus was not collecting. Totals are estimated from the data that exists.</p>{% endif %}
+  {% if gap > 0.02 and 'gap_note' in on %}<p class="note" style="margin:0 0 10pt">Metrics are missing for about {{ (gap * 100)|round|int }}% of this {{ word }} because UnPoller or Prometheus was not collecting. Totals are estimated from the data that exists.</p>{% endif %}
   {% for line in summary %}<p>{{ line }}</p>{% endfor %}
 
   {% if attention %}
