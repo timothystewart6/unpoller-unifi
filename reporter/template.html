@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>{{ network }}: {{ title }} report</title>
+<title>{% if name %}{{ name }}: {% endif %}{{ title }} report</title>
 <style>
 @font-face { font-family: Plex; font-weight: 400; src: url("{{ fonts }}/IBMPlexSans-400.ttf"); }
 @font-face { font-family: Plex; font-weight: 500; src: url("{{ fonts }}/IBMPlexSans-500.ttf"); }
@@ -24,7 +24,7 @@
 @page {
   size: A4;
   margin: 18mm 18mm 20mm;
-  @bottom-left { content: "{{ network }} · {{ title }} · {{ dates }}"; font: 7.5pt PlexMono; color: #8a8984; }
+  @bottom-left { content: "{% if name %}{{ name }} · {% endif %}{{ title }} · {{ dates }}"; font: 7.5pt PlexMono; color: #8a8984; }
   @bottom-right { content: counter(page) " of " counter(pages); font: 7.5pt PlexMono; color: #8a8984; }
 }
 * { box-sizing: border-box; }
@@ -96,11 +96,27 @@ tr { break-inside: avoid; }
 </style>
 </head>
 <body>
+{% macro ranked(rows, empty) %}
+  {% if rows %}
+  {% set top = rows[0].n %}
+  <table class="rank">
+    {% for r in rows %}
+    <tr>
+      <td class="name"><span>{{ r.name }}</span><div class="bar" style="width:{{ (r.n / top * 100)|round(1) }}%"></div></td>
+      <td class="n mono">{{ r.n|num }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="empty">{{ empty }}</p>{% endif %}
+{% endmacro %}
 
-<p class="eyebrow">{{ network }}</p>
-<h1>{% if kind == 'custom' %}Network report, {{ title }}{% else %}{{ kind|capitalize }} report, {{ title }}{% endif %}</h1>
+{% if name %}<p class="eyebrow">{{ name }}</p>{% endif %}
+<h1>{% if kind == 'custom' %}Report, {{ title }}{% else %}{{ kind|capitalize }} report, {{ title }}{% endif %}</h1>
 <p class="stamp">{{ dates }} · {{ tzname }} · generated {{ generated.strftime('%-d %b %Y %H:%M') }}</p>
 
+{% if gap > 0.02 and 'summary' not in on %}<p class="note" style="margin:12pt 0 0">Metrics are missing for about {{ (gap * 100)|round|int }}% of this {{ word }} because UnPoller or Prometheus was not collecting. Totals are estimated from the data that exists.</p>{% endif %}
+
+{% if 'summary' in on %}
 <section class="summary">
   {% if gap > 0.02 %}<p class="note" style="margin:0 0 10pt">Metrics are missing for about {{ (gap * 100)|round|int }}% of this {{ word }} because UnPoller or Prometheus was not collecting. Totals are estimated from the data that exists.</p>{% endif %}
   {% for line in summary %}<p>{{ line }}</p>{% endfor %}
@@ -114,30 +130,21 @@ tr { break-inside: avoid; }
   <div class="attention none">Nothing needs attention this {{ word }}</div>
   {% endif %}
 </section>
+{% endif %}
 
-<div class="figures keep">
+{% if 'figures' in on %}
+<div class="figures keep" style="grid-template-columns: repeat({{ figs|length }}, 1fr)">
+  {% for label, value, change in figs %}
   <div class="fig">
-    <div class="label">Downloaded</div>
-    <div class="value">{{ d.wan_down|bytes }}</div>
-    <div class="change">{{ ch('wan_down') }}</div>
+    <div class="label">{{ label }}</div>
+    <div class="value">{{ value }}</div>
+    <div class="change">{{ change }}</div>
   </div>
-  <div class="fig">
-    <div class="label">Peak devices online</div>
-    <div class="value">{{ d.clients_peak|num }}</div>
-    <div class="change">{{ ch('clients_peak') }}</div>
-  </div>
-  <div class="fig">
-    <div class="label">Blocked from the internet</div>
-    <div class="value">{{ d.blocks_in|num }}</div>
-    <div class="change">{{ ch('blocks_in', 'loki') }}</div>
-  </div>
-  <div class="fig">
-    <div class="label">Threats blocked</div>
-    <div class="value">{{ d.threats_blocked|num }}</div>
-    <div class="change">{{ ch('threats_blocked', 'loki') }}</div>
-  </div>
+  {% endfor %}
 </div>
+{% endif %}
 
+{% if 'throughput' in on %}
 <section class="keep">
   <div class="chart-head">
     <h2>Internet throughput</h2>
@@ -149,9 +156,10 @@ tr { break-inside: avoid; }
   {{ chart|safe }}
   <p class="note">Hourly averages of UniFi's WAN rate. Short bursts run higher than shown; 95% of the time download stayed under {{ d.wan_p95|bits }}. Data totals are estimated from the same rate.</p>
 </section>
+{% endif %}
 
-<!-- page 2 -->
-<section class="page">
+{% if 'internet' in on %}
+<section class="{{ 'page' if page1 }}">
   <h2>Internet and gateway</h2>
   <div class="cols">
     <table class="kv">
@@ -180,7 +188,9 @@ tr { break-inside: avoid; }
     {% endfor %}
   </table>
 </section>
+{% endif %}
 
+{% if 'devices' in on %}
 <section>
   <h2>Devices</h2>
   <div class="cols narrow-left">
@@ -204,8 +214,10 @@ tr { break-inside: avoid; }
     </div>
   </div>
 </section>
+{% endif %}
 
-<section class="page">
+{% if 'aps' in on %}
+<section class="{{ 'page' if aps_break }}">
   <h2>Access points</h2>
   <table>
     <tr><th>Access point</th><th class="n">Traffic</th><th class="n">Peak clients</th><th class="n">Wi-Fi experience</th><th class="n">2.4 GHz busy</th><th class="n">5 GHz busy</th><th class="n">Restarts</th></tr>
@@ -219,7 +231,9 @@ tr { break-inside: avoid; }
   </table>
   <p class="note">Wi-Fi experience is UniFi's satisfaction score for connected clients. Busy is the average share of time the channel was in use; above 60% clients start to feel it.</p>
 </section>
+{% endif %}
 
+{% if 'security' in on %}
 <section>
   <h2>Security</h2>
   <div class="cols">
@@ -237,30 +251,19 @@ tr { break-inside: avoid; }
     </table>
   </div>
 
-  {% macro ranked(rows, empty) %}
-    {% if rows %}
-    {% set top = rows[0].n %}
-    <table class="rank">
-      {% for r in rows %}
-      <tr>
-        <td class="name"><span>{{ r.name }}</span><div class="bar" style="width:{{ (r.n / top * 100)|round(1) }}%"></div></td>
-        <td class="n mono">{{ r.n|num }}</td>
-      </tr>
-      {% endfor %}
-    </table>
-    {% else %}<p class="empty">{{ empty }}</p>{% endif %}
-  {% endmacro %}
 
   <div class="cols" style="margin-top:16pt">
     <div class="keep"><h3>Rules that blocked the most</h3>{{ ranked(d.top_policies, "No blocks") }}</div>
     <div class="keep"><h3>Top internet sources blocked</h3>{{ ranked(d.top_sources, "No blocks from the internet") }}</div>
   </div>
   <div class="cols" style="margin-top:16pt">
-    <div class="keep"><h3>Office devices blocked most</h3>{{ ranked(d.top_devices, "No office devices were blocked") }}</div>
+    <div class="keep"><h3>Internal devices blocked most</h3>{{ ranked(d.top_devices, "No internal devices were blocked") }}</div>
     <div class="keep"><h3>Devices involved in threats</h3>{{ ranked(d.threat_devices, "No threats detected") }}</div>
   </div>
 </section>
+{% endif %}
 
+{% if 'threats' in on %}
 <section>
   <h2>Threats blocked</h2>
   {% set rows, total = threats %}
@@ -276,7 +279,9 @@ tr { break-inside: avoid; }
   <p class="empty">No threats detected this {{ word }}</p>
   {% endif %}
 </section>
+{% endif %}
 
+{% if 'events' in on %}
 <section>
   <h2>Changes and events</h2>
   {% if events %}
@@ -291,6 +296,7 @@ tr { break-inside: avoid; }
   <p class="empty">No firewall changes or internet failovers this {{ word }}</p>
   {% endif %}
 </section>
+{% endif %}
 
 {% if errors %}
 <p class="errors">{{ errors|length }} queries failed while building this report; those figures show as –.</p>

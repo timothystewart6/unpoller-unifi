@@ -136,8 +136,9 @@ def login_required(admin=False):
 
 @app.context_processor
 def common():
+    st = R.load_settings()
     return {"user": session.get("user"), "is_admin": session.get("admin"), "csrf": session.get("csrf"),
-            "network": R.NETWORK}
+            "name": R.display_name(st), "custom_name": bool(st["general"]["name"].strip()), "tz": str(R.TZ)}
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -230,8 +231,18 @@ def index():
     s = R.load_settings()
     today = dt.datetime.now(R.TZ).date()
     return render_template("reports.html", reports=archive(), jobs=[job_view(j) for j in reversed(jobs.values())],
-                           recipients=s["recipients"], today=today,
+                           recipients=s["recipients"], today=today, schedule=schedule_text(s["schedule"]),
                            week_ago=today - dt.timedelta(days=7), mail_ready=bool(s["smtp"].get("host")))
+
+
+def schedule_text(sch):
+    when = {"weekly": "weekly reports every Monday", "monthly": "monthly reports on the 1st",
+            "quarterly": "quarterly reports on the first day of each quarter"}
+    parts = [when[k] for k in ("weekly", "monthly", "quarterly") if k in sch.get("kinds", [])]
+    if not sch.get("enabled") or not parts:
+        return "Automatic reports are off. You can make one yourself"
+    text = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
+    return f"Made automatically: {text}, at {int(sch.get('hour', 7)):02d}:00. You can also make one yourself"
 
 
 @app.post("/generate")
@@ -306,6 +317,12 @@ def settings():
         except ValueError:
             flash("Port and send hour must be numbers (hour 0 to 23)")
             return redirect(url_for("settings"))
+        sections = {k: bool(f.get(f"sec_{k}")) for k, *_ in R.SECTIONS}
+        if not any(sections.values()):
+            flash("Pick at least one thing to include in the reports")
+            return redirect(url_for("settings"))
+        s["general"]["name"] = f.get("name", "").strip()[:60]
+        s["sections"] = sections
         s["smtp"].update(host=f.get("host", "").strip(), port=port, security=f.get("security", "starttls"),
                          user=f.get("user", "").strip(), **{"from": f.get("from", "").strip()})
         if f.get("password"):  # blank keeps the saved password
@@ -322,13 +339,13 @@ def settings():
         if f.get("action") == "test":
             to = f.get("test_to", "").strip()
             try:
-                R.send_mail(to, f"{R.NETWORK}: test email from the reports portal",
+                R.send_mail(to, f"{R.display_name()}: test email from the reports portal",
                             "This is a test from the reports portal. Email is working.")
                 flash(f"Test email sent to {to}")
             except Exception as e:  # noqa: BLE001
                 flash(f"Test email failed: {e}")
         return redirect(url_for("settings"))
-    return render_template("settings.html", s=s, has_password=bool(s["smtp"].get("password")))
+    return render_template("settings.html", s=s, has_password=bool(s["smtp"].get("password")), sections=R.SECTIONS)
 
 
 # ---------------------------------------------------------------- main

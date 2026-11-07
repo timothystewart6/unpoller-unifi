@@ -29,7 +29,6 @@ from jinja2 import Environment, FileSystemLoader
 PROM = os.environ.get("PROM_URL", "http://prometheus:9090")
 LOKI = os.environ.get("LOKI_URL", "http://loki:3100")
 TZ = ZoneInfo(os.environ.get("TZ", "Africa/Accra"))
-NETWORK = os.environ.get("REPORT_NETWORK_NAME", "PXGH network")
 OUT = Path(os.environ.get("OUT_DIR", "/out"))
 HERE = Path(__file__).parent
 log = logging.getLogger("reporter")
@@ -423,28 +422,46 @@ def svg_chart(down, up, kind, start, end, w=658, h=236):
             f'aria-label="Internet throughput, download and upload">{"".join(g)}</svg>')
 
 
+# ---------------------------------------------------------------- sections
+
+# What a report can include; admins switch these on and off in the portal.
+SECTIONS = [
+    ("summary", "Summary", "A few plain-language sentences and anything that needs attention"),
+    ("figures", "Headline numbers", "Data downloaded, peak devices, blocks and threats, with the change from last time"),
+    ("throughput", "Internet throughput chart", "Download and upload over the period"),
+    ("internet", "Internet and gateway", "Data used, latency, failovers, internet lines, gateway CPU, memory and temperature"),
+    ("devices", "Devices", "Devices online and the ten that used the most data"),
+    ("aps", "Access points", "Traffic, clients, Wi-Fi experience and channel use per access point"),
+    ("security", "Firewall and security", "Blocked connections, top blocking rules and sources, threat totals, admin logins"),
+    ("threats", "Threats blocked", "Each threat intrusion prevention detected, with device, target and severity"),
+    ("events", "Changes and events", "Firewall changes by admins and internet failovers"),
+]
+
+
 # ---------------------------------------------------------------- summary
 
-def summary(d, p, word, covered):
-    """Plain-language lines for page 1, written from the numbers."""
+def summary(d, p, word, covered, on=None):
+    """Plain-language lines for page 1, written from the numbers.
+    Only covers the sections that are switched on."""
+    on = on if on is not None else {k for k, *_ in SECTIONS}
     lines = []
     up = [w for w in d["wans"] if w["uptime"] is not None]
-    if up:
+    if up and "internet" in on:
         prim = max(up, key=lambda w: w["uptime"])
         fo = d["failovers"] or 0
         tail = (f" It failed over to a backup line {fo:.0f} time{'s' * (fo != 1)}"
                 if fo else " There were no failovers to the backup lines")
         lines.append(f"The main internet line ({prim['name']}) was up {prim['uptime']:.2f}% of the {word}.{tail}.")
-    if d["wan_down"] is not None:
+    if d["wan_down"] is not None and on & {"internet", "throughput"}:
         ch = change(d["wan_down"], p.get("wan_down"), "", word, covered["prom"])
-        lines.append(f"The office downloaded {fbytes(d['wan_down'])} and uploaded {fbytes(d['wan_up'])}"
-                     + (f" ({ch})" if ch and not ch.startswith("no full") else "") + ".")
-    if d["clients_peak"] is not None:
+        lines.append(f"The network downloaded {fbytes(d['wan_down'])} and uploaded {fbytes(d['wan_up'])}"
+                     + (f" ({ch})" if ch and not ch.startswith("no earlier") else "") + ".")
+    if d["clients_peak"] is not None and on & {"devices", "aps"}:
         new = d["clients_new"] if covered["prom"] else None
         lines.append(f"{fnum(d['clients_peak'])} devices were online at the busiest moment, "
                      f"{fnum(d['clients_unique'])} different devices over the {word}"
                      + (f", {fnum(new)} of them seen for the first time" if new else "") + ".")
-    if d["blocks_in"] is not None:
+    if d["blocks_in"] is not None and on & {"security", "threats"}:
         lines.append(f"The firewall blocked {fnum(d['blocks_in'])} connection attempts from the internet "
                      f"and {fnum(d['blocks_out'])} from devices inside the network. "
                      f"Intrusion prevention blocked {fnum(d['threats_blocked'])} of {fnum(d['threats'])} threats"
@@ -453,26 +470,28 @@ def summary(d, p, word, covered):
     return lines
 
 
-def attention(d):
-    """Things a reader should act on. Empty list = nothing to flag."""
+def attention(d, on=None):
+    """Things a reader should act on, limited to the sections switched on."""
+    on = on if on is not None else {k for k, *_ in SECTIONS}
     a = []
-    if d["gw_reboots"]:
+    gw, aps, sec = "internet" in on, "aps" in on, bool(on & {"security", "threats"})
+    if gw and d["gw_reboots"]:
         a.append(f"The gateway restarted {d['gw_reboots']:.0f} time(s)")
-    for ap in d["aps"]:
+    for ap in d["aps"] if aps else []:
         if ap["reboots"]:
             a.append(f"Access point {ap['name']} restarted {ap['reboots']:.0f} time(s)")
-    if d["mem_end"] is not None and d["mem_start"] is not None and d["mem_end"] - d["mem_start"] > 0.05:
+    if gw and d["mem_end"] is not None and d["mem_start"] is not None and d["mem_end"] - d["mem_start"] > 0.05:
         a.append(f"Gateway memory use climbed from {fpct(d['mem_start'])} to {fpct(d['mem_end'])}")
-    if d["mem_max"] and d["mem_max"] > 0.9:
+    if gw and d["mem_max"] and d["mem_max"] > 0.9:
         a.append(f"Gateway memory peaked at {fpct(d['mem_max'])}")
-    if d["threats_open"]:
+    if sec and d["threats_open"]:
         a.append(f"{fnum(d['threats_open'])} threats were detected but not blocked, see Security")
-    if d["threats_high"]:
+    if sec and d["threats_high"]:
         a.append(f"{fnum(d['threats_high'])} high-severity threats were detected"
                  + (", all blocked" if not d["threats_open"] else "") + ", see Security")
-    if d["logins_outside"]:
-        a.append(f"{fnum(d['logins_outside'])} admin logins came from outside the office network")
-    for ap in d["aps"]:
+    if "security" in on and d["logins_outside"]:
+        a.append(f"{fnum(d['logins_outside'])} admin logins came from outside the local network")
+    for ap in d["aps"] if aps else []:
         if (ap["u24"] or 0) > 0.6:
             a.append(f"{ap['name']} 2.4 GHz channel averaged {fpct(ap['u24'])} busy, clients there will feel slow")
     return a
@@ -486,23 +505,38 @@ def build(kind, end=None, start=None):
     prev_start = period_start(kind, start, end - start)
     word = KINDS[kind]
     title, dates = period_label(kind, start, end)
-    log.info("building %s report %s (%s)", kind, title, dates)
+    st = load_settings()
+    name = st["general"]["name"].strip()
+    on = {k for k, v in st["sections"].items() if v}
+    log.info("building %s report %s (%s), sections: %s", kind, title, dates, ",".join(sorted(on)))
 
     cur, prev = Source(start, end), Source(prev_start, start)
     d, p = collect(cur), collect(prev)
     cov = prev.coverage()
     gap = 1 - cur.coverage()["prom"]
     covered = {k: v >= 0.95 for k, v in cov.items()}
-    down, up, step = wan_series(cur, kind)
+    down, up, step = wan_series(cur, kind) if "throughput" in on else ([], [], 0)
     ch = lambda key, src="prom": change(d.get(key), p.get(key), "", word, covered[src])
+
+    # headline numbers follow the sections that are on; if none match, show them all
+    figs = [
+        ("Downloaded", fbytes(d["wan_down"]), ch("wan_down"), {"internet", "throughput"}),
+        ("Peak devices online", fnum(d["clients_peak"]), ch("clients_peak"), {"devices", "aps"}),
+        ("Blocked from the internet", fnum(d["blocks_in"]), ch("blocks_in", "loki"), {"security"}),
+        ("Threats blocked", fnum(d["threats_blocked"]), ch("threats_blocked", "loki"), {"security", "threats"}),
+    ]
+    figs = [f[:3] for f in figs if f[3] & on] or [f[:3] for f in figs]
+    page1 = bool(on & {"summary", "figures", "throughput"})
 
     env = Environment(loader=FileSystemLoader(HERE), autoescape=True)
     env.filters.update(bytes=fbytes, bits=fbits, num=fnum, pct=fpct)
     html_out = env.get_template("template.html").render(
-        network=NETWORK, kind=kind, word=word, title=title, dates=dates,
+        name=name, on=on, figs=figs, page1=page1, aps_break=page1 or bool(on & {"internet", "devices"}), kind=kind, word=word, title=title, dates=dates,
         tzname=str(TZ), generated=dt.datetime.now(TZ), d=d, p=p, ch=ch, covered=covered,
-        summary=summary(d, p, word, covered), attention=attention(d), events=events(cur),
-        threats=threat_list(cur), chart=svg_chart(down, up, kind, start, end), fonts=(HERE / "fonts").as_uri(),
+        summary=summary(d, p, word, covered, on), attention=attention(d, on),
+        events=events(cur) if "events" in on else [],
+        threats=threat_list(cur) if "threats" in on else ([], 0),
+        chart=svg_chart(down, up, kind, start, end) if "throughput" in on else "", fonts=(HERE / "fonts").as_uri(),
         errors=cur.errors + prev.errors, gap=gap, max_client=max([c["bytes"] for c in d["top_clients"]] or [1]),
     )
     OUT.mkdir(parents=True, exist_ok=True)
@@ -512,8 +546,9 @@ def build(kind, end=None, start=None):
     HTML(string=html_out, base_url=str(HERE)).write_pdf(tmp)
     tmp.replace(pdf)  # appears in the portal only once complete
     log.info("wrote %s (%d query errors)", pdf, len(cur.errors + prev.errors))
-    name = f"{title} report" if kind != "custom" else f"report for {title}"
-    return pdf, f"{NETWORK}: {name} ({dates})", summary(d, p, word, covered)
+    what = f"{kind.capitalize()} report, {title}" if kind != "custom" else f"Report for {title}"
+    subject = f"{name}: {what} ({dates})" if name else f"{what} ({dates})"
+    return pdf, subject, summary(d, p, word, covered, on)
 
 
 # ---------------------------------------------------------------- settings
@@ -526,6 +561,8 @@ def default_settings():
     env = os.environ.get
     to = env("REPORT_TO", "")
     return {
+        "general": {"name": env("REPORT_NAME", "")},
+        "sections": {k: True for k, *_ in SECTIONS},
         "smtp": {"host": env("SMTP_HOST", ""), "port": int(env("SMTP_PORT", 587)),
                  "security": env("SMTP_SECURITY", "starttls"), "user": env("SMTP_USER", ""),
                  "password": env("SMTP_PASSWORD", ""), "from": env("SMTP_FROM", "")},
@@ -544,6 +581,11 @@ def load_settings():
     except FileNotFoundError:
         pass
     return s
+
+
+def display_name(s=None):
+    """What the portal calls itself: the admin's chosen name, or Reports."""
+    return (s or load_settings())["general"]["name"].strip() or "Reports"
 
 
 def save_settings(s):

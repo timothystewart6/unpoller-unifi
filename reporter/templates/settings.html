@@ -8,14 +8,37 @@
 .panel p.intro { color: var(--ink-2); margin: -4px 0 16px; }
 .bar { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
 .bar .field { flex: 1; min-width: 220px; margin: 0; }
+.incl { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; }
+.incl-row { align-items: flex-start; padding: 8px 0; margin: 0; border-bottom: 1px solid var(--rule); }
+.incl-row input { margin-top: 4px; }
+.incl-label { display: block; }
+@media (max-width: 640px) { .incl { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
 </style>
 
 <h1>Settings</h1>
-<p class="lede">Email and schedule for the automatic reports. Only Grafana admins can see this page</p>
+<p class="lede">What the reports contain, who gets them and when. Only Grafana admins can see this page</p>
 
 <form method="post" class="sections">
   <input type="hidden" name="csrf" value="{{ csrf }}">
+
+  <section class="panel">
+    <h2>Name</h2>
+    <div class="field" style="margin:0"><label for="name">Shown at the top of this portal, on every report and in email subjects</label>
+      <input type="text" id="name" name="name" maxlength="60" value="{{ s.general.name }}" placeholder="Reports">
+      <div class="hint">For example your company, site or network name. Leave blank to use Reports</div></div>
+  </section>
+
+  <section class="panel">
+    <h2>What to include</h2>
+    <p class="intro">Applies to every report, scheduled or made by hand</p>
+    <div class="incl">
+      {% for key, label, desc in sections %}
+      <label class="check incl-row"><input type="checkbox" name="sec_{{ key }}" {{ 'checked' if s.sections.get(key, True) }}>
+        <span><span class="incl-label">{{ label }}</span><span class="hint" style="display:block;margin:0">{{ desc }}</span></span></label>
+      {% endfor %}
+    </div>
+  </section>
 
   <section class="panel">
     <h2>Email server</h2>
@@ -59,7 +82,7 @@
       <select id="hour" name="hour">
         {% for h in range(24) %}<option value="{{ h }}" {{ 'selected' if s.schedule.hour == h }}>{{ '%02d:00'|format(h) }}</option>{% endfor %}
       </select>
-      <div class="hint">Local time, Africa/Accra</div></div>
+      <div class="hint">Local time, {{ tz }}</div></div>
   </section>
 
   <section class="panel">

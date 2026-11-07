@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}Reports{% endblock %} · {{ network }}</title>
+<title>{% block title %}Reports{% endblock %}{% if custom_name %} · {{ name }}{% endif %}</title>
 <style>
 @font-face { font-family: Plex; font-weight: 400; src: url("{{ url_for('static', filename='IBMPlexSans-400.ttf') }}"); }
 @font-face { font-family: Plex; font-weight: 500; src: url("{{ url_for('static', filename='IBMPlexSans-500.ttf') }}"); }
@@ -102,7 +102,7 @@ td.n, th.n { text-align: right; }
 <body>
 {% if user %}
 <header>
-  <a class="brand" href="{{ url_for('index') }}">{{ network }}<span>Reports</span></a>
+  <a class="brand" href="{{ url_for('index') }}">{{ name }}{% if custom_name %}<span>Reports</span>{% endif %}</a>
   <nav>
     <a href="{{ url_for('index') }}" class="{{ 'on' if request.endpoint == 'index' }}">Reports</a>
     {% if is_admin %}<a href="{{ url_for('settings') }}" class="{{ 'on' if request.endpoint == 'settings' }}">Settings</a>{% endif %}
