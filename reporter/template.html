@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{% if name %}{{ name }}: {% endif %}{{ title }} report</title>
+<style>
+@font-face { font-family: Plex; font-weight: 400; src: url("{{ fonts }}/IBMPlexSans-400.ttf"); }
+@font-face { font-family: Plex; font-weight: 500; src: url("{{ fonts }}/IBMPlexSans-500.ttf"); }
+@font-face { font-family: Plex; font-weight: 600; src: url("{{ fonts }}/IBMPlexSans-600.ttf"); }
+@font-face { font-family: PlexMono; font-weight: 400; src: url("{{ fonts }}/IBMPlexMono-400.ttf"); }
+@font-face { font-family: PlexMono; font-weight: 500; src: url("{{ fonts }}/IBMPlexMono-500.ttf"); }
+
+:root {
+  --paper: #ffffff;
+  --ink: #1b1b1a;
+  --ink-2: #52514e;
+  --ink-3: #8a8984;
+  --rule: rgba(27, 27, 26, 0.10);
+  --rule-strong: rgba(27, 27, 26, 0.22);
+  --bar: #c9c8c2;
+  --accent: #2a78d6;
+  --accent-ink: #1f5fae;
+}
+@page {
+  size: A4;
+  margin: 18mm 18mm 20mm;
+  @bottom-left { content: "{% if name %}{{ name }} · {% endif %}{{ title }} · {{ dates }}"; font: 7.5pt PlexMono; color: #8a8984; }
+  @bottom-right { content: counter(page) " of " counter(pages); font: 7.5pt PlexMono; color: #8a8984; }
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0; font: 9.5pt/1.5 Plex, sans-serif; color: var(--ink); font-variant-numeric: tabular-nums; }
+.mono { font-family: PlexMono, monospace; }
+.muted { color: var(--ink-3); }
+
+/* header */
+.eyebrow { font-size: 9pt; color: var(--ink-2); margin: 0 0 4pt; }
+h1 { font-size: 22pt; line-height: 1.15; font-weight: 500; margin: 0; letter-spacing: -0.01em; }
+.stamp { font: 8.5pt PlexMono; color: var(--ink-2); margin: 6pt 0 0; padding-bottom: 12pt; border-bottom: 1px solid var(--rule-strong); }
+
+h2 { font-size: 12pt; font-weight: 500; margin: 0 0 8pt; }
+h3 { font-size: 9.5pt; font-weight: 500; margin: 0 0 6pt; }
+section { margin-top: 24pt; }
+section.page { break-before: page; margin-top: 0; }
+section { break-inside: auto; }
+.keep { break-inside: avoid; }
+
+/* summary */
+.summary p { margin: 0 0 6pt; max-width: 150mm; font-size: 10.5pt; line-height: 1.55; }
+.attention { margin: 12pt 0 0; padding: 10pt 12pt; border: 1px solid var(--rule-strong); border-radius: 8px; }
+.attention h3 { margin-bottom: 4pt; }
+.attention ul { margin: 0; padding-left: 14pt; }
+.attention li { margin: 2pt 0; }
+.attention.none { color: var(--ink-2); }
+
+/* figures: a row of numbers, the first one leads */
+.figures { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; margin-top: 20pt; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.fig { padding: 10pt 10pt 12pt 0; }
+.fig + .fig { padding-left: 10pt; border-left: 1px solid var(--rule); }
+.fig .label { font-size: 8.5pt; color: var(--ink-2); }
+.fig .value { font-size: 18pt; font-weight: 500; line-height: 1.25; margin-top: 2pt; }
+.fig .change { font: 7.5pt PlexMono; color: var(--ink-3); margin-top: 2pt; }
+
+/* chart */
+.chart-head { display: flex; justify-content: space-between; align-items: baseline; }
+.legend { font-size: 8.5pt; color: var(--ink-2); }
+.legend span { margin-left: 12pt; }
+.legend i { display: inline-block; width: 14pt; height: 2px; vertical-align: middle; margin-right: 4pt; }
+svg { display: block; margin-top: 4pt; }
+.note { font-size: 8pt; color: var(--ink-3); margin-top: 6pt; }
+
+/* tables */
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 8pt; font-weight: 400; color: var(--ink-2); text-align: left; padding: 0 8pt 4pt 0; border-bottom: 1px solid var(--rule-strong); }
+td { padding: 5pt 8pt 5pt 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th.n, td.n { text-align: right; white-space: nowrap; }
+td .sub { display: block; font: 7.5pt PlexMono; color: var(--ink-3); }
+tr { break-inside: avoid; }
+
+.kv td:first-child { color: var(--ink-2); }
+.cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 24pt; }
+.cols.narrow-left { grid-template-columns: 2fr 3fr; }
+.cols > * { min-width: 0; }
+
+/* ranked lists with thin bars */
+.rank { width: 100%; }
+.rank td { border: 0; padding: 3pt 8pt 3pt 0; }
+.rank .bar { height: 4px; background: var(--bar); border-radius: 2px; margin-top: 3pt; }
+.rank td.name { width: 100%; }
+.rank .name .detail { font: 7pt PlexMono; color: var(--ink-3); }
+.rank .name span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.empty { color: var(--ink-3); font-size: 9pt; }
+
+.log td { font-size: 8.5pt; }
+.log td.t { white-space: nowrap; font: 7.5pt PlexMono; color: var(--ink-2); padding-top: 6pt; }
+.errors { margin-top: 20pt; font-size: 8pt; color: var(--ink-3); }
+</style>
+</head>
+<body>
+{% macro ranked(rows, empty) %}
+  {% if rows %}
+  {% set top = rows[0].n %}
+  <table class="rank">
+    {% for r in rows %}
+    <tr>
+      <td class="name"><span>{{ r.name }}</span><div class="bar" style="width:{{ (r.n / top * 100)|round(1) }}%"></div></td>
+      <td class="n mono">{{ r.n|num }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="empty">{{ empty }}</p>{% endif %}
+{% endmacro %}
+
+{% if name %}<p class="eyebrow">{{ name }}</p>{% endif %}
+<h1>{% if kind == 'custom' %}Report, {{ title }}{% else %}{{ kind|capitalize }} report, {{ title }}{% endif %}</h1>
+<p class="stamp">{{ dates }} · {{ tzname }} · generated {{ generated.strftime('%-d %b %Y %H:%M') }}</p>
+
+{% if gap > 0.02 and 'gap_note' in on and 'summary' not in on %}<p class="note" style="margin:12pt 0 0">Metrics are missing for about {{ (gap * 100)|round|int }}% of this {{ word }} because UnPoller or Prometheus was not collecting. Totals are estimated from the data that exists.</p>{% endif %}
+
+{% if 'summary' in on %}
+<section class="summary">
+  {% if gap > 0.02 and 'gap_note' in on %}<p class="note" style="margin:0 0 10pt">Metrics are missing for about {{ (gap * 100)|round|int }}% of this {{ word }} because UnPoller or Prometheus was not collecting. Totals are estimated from the data that exists.</p>{% endif %}
+  {% for line in summary %}<p>{{ line }}</p>{% endfor %}
+
+  {% if attention %}
+  <div class="attention keep">
+    <h3>Needs attention</h3>
+    <ul>{% for a in attention %}<li>{{ a }}</li>{% endfor %}</ul>
+  </div>
+  {% else %}
+  <div class="attention none">Nothing needs attention this {{ word }}</div>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if 'figures' in on %}
+<div class="figures keep" style="grid-template-columns: repeat({{ figs|length }}, 1fr)">
+  {% for label, value, change in figs %}
+  <div class="fig">
+    <div class="label">{{ label }}</div>
+    <div class="value">{{ value }}</div>
+    <div class="change">{{ change }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if 'throughput' in on %}
+<section class="keep">
+  <div class="chart-head">
+    <h2>Internet throughput</h2>
+    <div class="legend">
+      <span><i style="background:#2a78d6"></i>Download</span>
+      <span><i style="background:#a9a8a2"></i>Upload</span>
+    </div>
+  </div>
+  {{ chart|safe }}
+  <p class="note">Hourly averages of UniFi's WAN rate. Short bursts run higher than shown; 95% of the time download stayed under {{ d.wan_p95|bits }}. Data totals are estimated from the same rate.</p>
+</section>
+{% endif %}
+
+{% if 'internet' in on %}
+<section class="{{ 'page' if page1 }}">
+  <h2>Internet and gateway</h2>
+  <div class="cols">
+    <table class="kv">
+      {% if 'downloaded' in on %}
+      <tr><td>Downloaded</td><td class="n">{{ d.wan_down|bytes }}</td></tr>
+      <tr><td>Uploaded</td><td class="n">{{ d.wan_up|bytes }}</td></tr>
+      {% endif %}
+      <tr><td>Download, 95th percentile</td><td class="n">{{ d.wan_p95|bits }}</td></tr>
+      <tr><td>Latency, average</td><td class="n">{% if d.latency_avg is not none %}{{ '%.0f'|format(d.latency_avg * 1000) }} ms{% else %}–{% endif %}</td></tr>
+      <tr><td>Latency, worst</td><td class="n">{% if d.latency_max is not none %}{{ '%.0f'|format(d.latency_max * 1000) }} ms{% else %}–{% endif %}</td></tr>
+      <tr><td>Failovers to a backup line</td><td class="n">{{ d.failovers|num }}</td></tr>
+    </table>
+    <table class="kv">
+      <tr><td>Gateway CPU, average</td><td class="n">{{ d.cpu_avg|pct }}</td></tr>
+      <tr><td>Gateway CPU, peak</td><td class="n">{{ d.cpu_max|pct }}</td></tr>
+      <tr><td>Memory, first day → last day</td><td class="n">{{ d.mem_start|pct }} → {{ d.mem_end|pct }}</td></tr>
+      <tr><td>Memory, peak</td><td class="n">{{ d.mem_max|pct }}</td></tr>
+      <tr><td>CPU temperature, peak</td><td class="n">{% if d.temp_max is not none %}{{ '%.0f'|format(d.temp_max) }} °C{% else %}–{% endif %}</td></tr>
+      <tr><td>Gateway restarts</td><td class="n">{{ d.gw_reboots|num }}</td></tr>
+    </table>
+  </div>
+
+  <h3 style="margin-top:16pt">Internet lines</h3>
+  <table>
+    <tr><th>Line</th><th class="n">Up</th></tr>
+    {% for w in d.wans %}
+    <tr><td>{{ w.name }}</td><td class="n">{% if w.uptime is not none %}{{ '%.2f'|format(w.uptime) }}%{% else %}<span class="muted">standby, not in use</span>{% endif %}</td></tr>
+    {% endfor %}
+  </table>
+</section>
+{% endif %}
+
+{% if 'devices' in on %}
+<section>
+  <h2>Devices</h2>
+  <div class="cols narrow-left">
+    <table class="kv">
+      <tr><td>Peak online</td><td class="n">{{ d.clients_peak|num }}</td></tr>
+      <tr><td>Different devices</td><td class="n">{{ d.clients_unique|num }}</td></tr>
+      <tr><td>First seen this {{ word }}</td><td class="n">{% if covered.prom %}{{ d.clients_new|num }}{% else %}–{% endif %}</td></tr>
+    </table>
+    <div>
+      <h3>Most traffic</h3>
+      {% if d.top_clients %}
+      <table class="rank">
+        {% for c in d.top_clients %}
+        <tr>
+          <td class="name"><span>{{ c.name }}</span>{% if c.detail %}<span class="detail">{{ c.detail }}</span>{% endif %}<div class="bar" style="width:{{ (c.bytes / max_client * 100)|round(1) }}%"></div></td>
+          <td class="n mono">{{ c.bytes|bytes }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% else %}<p class="empty">No client traffic recorded</p>{% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if 'aps' in on %}
+<section class="{{ 'page' if aps_break }}">
+  <h2>Access points</h2>
+  <table>
+    <tr><th>Access point</th><th class="n">Traffic</th><th class="n">Peak clients</th><th class="n">Wi-Fi experience</th><th class="n">2.4 GHz busy</th><th class="n">5 GHz busy</th><th class="n">Restarts</th></tr>
+    {% for a in d.aps %}
+    <tr>
+      <td>{{ a.name }}</td><td class="n">{{ a.bytes|bytes }}</td><td class="n">{{ a.peak|num }}</td>
+      <td class="n">{{ a.sat|pct }}</td><td class="n">{{ a.u24|pct }}</td><td class="n">{{ a.u5|pct }}</td>
+      <td class="n">{{ a.reboots|num }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="note">Wi-Fi experience is UniFi's satisfaction score for connected clients. Busy is the average share of time the channel was in use; above 60% clients start to feel it.</p>
+</section>
+{% endif %}
+
+{% if 'security' in on %}
+<section>
+  <h2>Security</h2>
+  <div class="cols">
+    <table class="kv">
+      <tr><td>Blocked from the internet</td><td class="n">{{ d.blocks_in|num }}</td></tr>
+      <tr><td>Different internet sources</td><td class="n">{{ d.block_sources|num }}</td></tr>
+      <tr><td>Blocked from inside the network</td><td class="n">{{ d.blocks_out|num }}</td></tr>
+    </table>
+    <table class="kv">
+      <tr><td>Threats detected by IPS</td><td class="n">{{ d.threats|num }}</td></tr>
+      <tr><td>Threats blocked</td><td class="n">{{ d.threats_blocked|num }}</td></tr>
+      <tr><td>Detected but not blocked</td><td class="n">{{ d.threats_open|num }}</td></tr>
+      <tr><td>High or very high severity</td><td class="n">{{ d.threats_high|num }}</td></tr>
+      <tr><td>Admin logins / from outside</td><td class="n">{{ d.logins|num }} / {{ d.logins_outside|num }}</td></tr>
+    </table>
+  </div>
+
+
+  <div class="cols" style="margin-top:16pt">
+    <div class="keep"><h3>Rules that blocked the most</h3>{{ ranked(d.top_policies, "No blocks") }}</div>
+    <div class="keep"><h3>Top internet sources blocked</h3>{{ ranked(d.top_sources, "No blocks from the internet") }}</div>
+  </div>
+  <div class="cols" style="margin-top:16pt">
+    <div class="keep"><h3>Internal devices blocked most</h3>{{ ranked(d.top_devices, "No internal devices were blocked") }}</div>
+    <div class="keep"><h3>Devices involved in threats</h3>{{ ranked(d.threat_devices, "No threats detected") }}</div>
+  </div>
+</section>
+{% endif %}
+
+{% if 'threats' in on %}
+<section>
+  <h2>Threats blocked</h2>
+  {% set rows, total = threats %}
+  {% if rows %}
+  <table class="log">
+    <tr><th>When</th><th>Device</th><th>Target</th><th>Severity</th><th>Result</th></tr>
+    {% for r in rows %}
+    <tr><td class="t">{{ r.t.strftime('%a %-d %b %H:%M') }}</td><td>{{ r.src }}</td><td>{{ r.dst }}</td><td>{{ r.sev }}</td><td>{{ 'Blocked' if r.blocked else 'Detected only' }}</td></tr>
+    {% endfor %}
+  </table>
+  <p class="note">{% if total > rows|length %}Newest {{ rows|length }} of {{ total }} threats. {% endif %}UniFi records the device and severity for each threat but not the signature name; look the event up in UniFi under Insights → Threats for details.</p>
+  {% else %}
+  <p class="empty">No threats detected this {{ word }}</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if 'events' in on %}
+<section>
+  <h2>Changes and events</h2>
+  {% if events %}
+  <table class="log">
+    <tr><th>When</th><th>Type</th><th>What happened</th></tr>
+    {% for e in events[-40:] %}
+    <tr><td class="t">{{ e.t.strftime('%a %-d %b %H:%M') }}</td><td style="white-space:nowrap">{{ e.kind }}</td><td>{{ e.msg }}</td></tr>
+    {% endfor %}
+  </table>
+  {% if events|length > 40 %}<p class="note">Showing the last 40 of {{ events|length }} events.</p>{% endif %}
+  {% else %}
+  <p class="empty">No firewall changes or internet failovers this {{ word }}</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if errors %}
+<p class="errors">{{ errors|length }} queries failed while building this report; those figures show as –.</p>
+{% endif %}
+</body>
+</html>

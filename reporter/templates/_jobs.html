@@ -1,0 +1,12 @@
+{% if jobs %}
+<h2>Recent requests</h2>
+{% for j in jobs %}
+<div class="job"><div>
+  <div><span class="dot {{ j.status }}"></span>{{ j.period }} <span class="muted">{{ j.kind }}</span></div>
+  <div class="muted mono">{{ {'queued':'Waiting','running':'Making the report','done':'Ready','failed':'Failed'}[j.status] }}{% if j.to %} · email to {{ j.to }}{% endif %} · {{ j.by }} {{ j.queued_at }}</div>
+  {% if j.error %}<div class="err">{{ j.error }}</div>{% endif %}
+</div>
+{% if j.file %}<a class="btn quiet small" href="{{ url_for('download', name=j.file) }}">Download</a>{% endif %}
+</div>
+{% endfor %}
+{% endif %}

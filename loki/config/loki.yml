@@ -1,0 +1,55 @@
+# Loki for the UniFi monitoring stack.
+# Single-binary mode with local filesystem storage. It only receives logs
+# pushed by UnPoller (UniFi system log, including Security detections).
+# Loki has no authentication here, so compose.yaml does NOT publish its port:
+# only containers on the compose network (unpoller, grafana) can reach it.
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+  # UnPoller pushes every 2m, the same as Loki's default idle timeout, so the
+  # two race and some pushes fail with "broken pipe" (UnPoller re-sends them
+  # next round). Keeping idle connections open longer stops the noise.
+  http_server_idle_timeout: 5m
+  log_level: warn
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  # Keep logs for 400 days, then delete them, so the quarterly reports
+  # (and a year-on-year look back) have data. Lower this if disk runs short.
+  # Retention is enforced by the compactor below.
+  retention_period: 9600h
+  # Loki rejects queries longer than 30 days by default; the quarterly
+  # report needs ~92 days, so allow queries over the whole retention window.
+  max_query_length: 9600h
+  max_query_series: 50000
+
+compactor:
+  working_directory: /loki/compactor
+  retention_enabled: true
+  delete_request_store: filesystem
+
+analytics:
+  reporting_enabled: false

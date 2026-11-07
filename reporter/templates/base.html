@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Reports{% endblock %}{% if custom_name %} · {{ name }}{% endif %}</title>
+<style>
+@font-face { font-family: Plex; font-weight: 400; src: url("{{ url_for('static', filename='IBMPlexSans-400.ttf') }}"); }
+@font-face { font-family: Plex; font-weight: 500; src: url("{{ url_for('static', filename='IBMPlexSans-500.ttf') }}"); }
+@font-face { font-family: PlexMono; font-weight: 400; src: url("{{ url_for('static', filename='IBMPlexMono-400.ttf') }}"); }
+
+:root {
+  --bg: #f7f7f5; --surface: #ffffff; --ink: #1b1b1a; --ink-2: #52514e; --ink-3: #85847f;
+  --rule: rgba(27,27,26,.10); --rule-2: rgba(27,27,26,.18);
+  --accent: #1f5fae; --accent-hover: #194f92; --on-accent: #ffffff;
+  --ok: #2c7a4b; --bad: #b3261e; --field: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161615; --surface: #1e1e1d; --ink: #eeeeea; --ink-2: #b9b8b1; --ink-3: #8a8984;
+    --rule: rgba(238,238,234,.08); --rule-2: rgba(238,238,234,.16);
+    --accent: #e9e8e3; --accent-hover: #ffffff; --on-accent: #161615;
+    --ok: #6cc08b; --bad: #f08a80; --field: #232322;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161615; --surface: #1e1e1d; --ink: #eeeeea; --ink-2: #b9b8b1; --ink-3: #8a8984;
+  --rule: rgba(238,238,234,.08); --rule-2: rgba(238,238,234,.16);
+  --accent: #e9e8e3; --accent-hover: #ffffff; --on-accent: #161615;
+  --ok: #6cc08b; --bad: #f08a80; --field: #232322;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 Plex, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+a { color: inherit; }
+.mono { font-family: PlexMono, ui-monospace, monospace; font-size: 12px; }
+.muted { color: var(--ink-3); }
+
+header { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+         padding: 0 24px; height: 56px; border-bottom: 1px solid var(--rule); background: var(--surface); }
+.brand { font-weight: 500; text-decoration: none; }
+.brand span { color: var(--ink-3); font-weight: 400; margin-left: 8px; }
+nav { display: flex; align-items: center; gap: 4px; }
+nav a, nav button { font: inherit; color: var(--ink-2); text-decoration: none; background: none; border: 0;
+                    padding: 6px 10px; border-radius: 8px; cursor: pointer; transition: background-color .15s, color .15s; }
+nav a:hover, nav button:hover { background: var(--rule); color: var(--ink); }
+nav a.on { color: var(--ink); background: var(--rule); }
+nav .who { color: var(--ink-3); padding: 0 8px; }
+
+main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 64px; }
+h1 { font-size: 24px; font-weight: 500; margin: 0 0 4px; }
+h2 { font-size: 16px; font-weight: 500; margin: 0 0 12px; }
+.lede { color: var(--ink-2); margin: 0 0 24px; }
+
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; }
+.flash { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; background: var(--surface); border: 1px solid var(--rule-2); }
+
+label { display: block; font-size: 13px; color: var(--ink-2); margin: 0 0 4px; }
+input[type=text], input[type=password], input[type=email], input[type=date], input[type=number], select, textarea {
+  width: 100%; font: inherit; color: var(--ink); background: var(--field); border: 1px solid var(--rule-2);
+  border-radius: 8px; padding: 8px 10px; transition: border-color .15s; }
+input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.field { margin-bottom: 16px; }
+.hint { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+.check { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: 14px; margin: 0 0 8px; }
+.check input { margin: 0; accent-color: var(--accent); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: inherit; font-weight: 500;
+       border-radius: 8px; padding: 8px 16px; cursor: pointer; border: 1px solid transparent; text-decoration: none;
+       transition: background-color .15s, border-color .15s, transform .1s; }
+.btn:active { transform: scale(.98); }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.quiet { background: none; color: var(--ink); border-color: var(--rule-2); }
+.btn.quiet:hover { background: var(--rule); }
+.btn.small { padding: 4px 10px; font-size: 13px; font-weight: 400; }
+.btn.link { background: none; border: 0; padding: 0; color: var(--ink-3); font-weight: 400; }
+.btn.link:hover { color: var(--bad); }
+
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-weight: 400; font-size: 12px; color: var(--ink-3); padding: 0 12px 8px 0; border-bottom: 1px solid var(--rule-2); }
+td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+td.n, th.n { text-align: right; }
+.actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--ink-3); }
+.dot.running { background: var(--accent); animation: live 1.4s ease-in-out infinite; }
+.dot.done { background: var(--ok); }
+.dot.failed { background: var(--bad); }
+@keyframes live { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .dot.running { animation: none; } }
+
+@media (max-width: 760px) {
+  header { padding: 0 16px; }
+  main { padding: 24px 16px 48px; }
+  nav .who { display: none; }
+  .brand span { display: none; }
+}
+</style>
+</head>
+<body>
+{% if user %}
+<header>
+  <a class="brand" href="{{ url_for('index') }}">{{ name }}{% if custom_name %}<span>Reports</span>{% endif %}</a>
+  <nav>
+    <a href="{{ url_for('index') }}" class="{{ 'on' if request.endpoint == 'index' }}">Reports</a>
+    {% if is_admin %}<a href="{{ url_for('settings') }}" class="{{ 'on' if request.endpoint == 'settings' }}">Settings</a>{% endif %}
+    <span class="who">{{ user }}</span>
+    <form method="post" action="{{ url_for('logout') }}" style="margin:0"><button>Sign out</button></form>
+  </nav>
+</header>
+{% endif %}
+<main>
+  {% for m in get_flashed_messages() %}<p class="flash">{{ m }}</p>{% endfor %}
+  {% block body %}{% endblock %}
+</main>
+</body>
+</html>

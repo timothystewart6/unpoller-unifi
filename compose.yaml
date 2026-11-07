@@ -6,6 +6,13 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     env_file:
       - ./prometheus/.env
+    # keep 400 days of metrics so monthly/quarterly reports have data;
+    # the size cap deletes the oldest data first if disk use passes 20GB
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=400d
+      - --storage.tsdb.retention.size=20GB
     ports:
       - '9090:9090'
     volumes:
@@ -35,6 +42,39 @@ services:
       - ./unpoller/.env
     ports:
       - '9130:9130'
+
+  # log store for UniFi security events pushed by unpoller (config: loki/config/loki.yml)
+  # no ports are published: Loki has no authentication and only grafana and unpoller need it
+  loki:
+    image: grafana/loki:3.7.8 # pinned: loki/config/loki.yml is written for Loki 3.x
+    restart: unless-stopped
+    container_name: loki
+    user: "${UID:-1000}:${GID:-1000}"
+    command: -config.file=/etc/loki/loki.yml
+    env_file:
+      - ./loki/.env
+    volumes:
+      - ./loki/config:/etc/loki
+      - ./loki/data:/loki
+
+  # weekly/monthly/quarterly PDF reports from prometheus + loki, with a web portal on :8088
+  # (sign in with a Grafana account; Grafana admins set up email and the schedule there)
+  # command line: docker compose exec reporter python report.py run weekly --no-email
+  reporter:
+    build: ./reporter
+    restart: unless-stopped
+    container_name: reporter
+    user: "${UID:-1000}:${GID:-1000}"
+    env_file:
+      - ./reporter/.env
+    ports:
+      - '8088:8088'
+    volumes:
+      - ./reporter/out:/out
+    depends_on:
+      - prometheus
+      - loki
+      - grafana
 
 # optional log viewer for docker containers
   dozzle:

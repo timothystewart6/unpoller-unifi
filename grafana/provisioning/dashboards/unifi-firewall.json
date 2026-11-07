@@ -1,0 +1,4467 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "11.5.2"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "bargauge",
+      "name": "Bar gauge",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "loki",
+      "name": "Loki",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "gauge",
+      "name": "Gauge",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "logs",
+      "name": "Logs",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "piechart",
+      "name": "Pie chart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "state-timeline",
+      "name": "State timeline",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "text",
+      "name": "Text",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "UniFi Poller - Firewall policy posture for UniFi Network zone-based firewall (Prometheus) plus UniFi firewall blocks and threat detections (Loki). Requires UnPoller v2.37.0+; zone panels require v3.0.0+ and an API key; security events require the Loki output and SAVE_SYSLOG.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [
+        "unifi-poller"
+      ],
+      "title": "UniFi Poller",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "description": "Total firewall policies defined on the selected site(s), predefined and custom. Source: unpoller_firewall_rules_total.",
+      "id": 1,
+      "title": "Total rules",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_total{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "__auto",
+          "range": true,
+          "instant": false,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "description": "Firewall policies currently enabled. Source: unpoller_firewall_rules_enabled.",
+      "id": 2,
+      "title": "Enabled",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_enabled{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "__auto",
+          "range": true,
+          "instant": false,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "description": "Firewall policies that exist but are switched off. Highlighted when non-zero so forgotten or temporarily disabled rules stand out. Source: unpoller_firewall_rules_disabled.",
+      "id": 3,
+      "title": "Disabled",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_disabled{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "__auto",
+          "range": true,
+          "instant": false,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "description": "Policies whose action is BLOCK or REJECT (enabled or not). Source: unpoller_firewall_rules_by_action.",
+      "id": 4,
+      "title": "Block / reject rules",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_by_action{source=~\"$Controller\",site_name=~\"$Site\",action=~\"BLOCK|REJECT\"})",
+          "legendFormat": "__auto",
+          "range": true,
+          "instant": false,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "description": "Policies you created, as opposed to UniFi's predefined zone policies. Source: unpoller_firewall_rules_custom.",
+      "id": 5,
+      "title": "Custom rules",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_custom{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "__auto",
+          "range": true,
+          "instant": false,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "description": "Policies with syslog logging turned on. Source: unpoller_firewall_rules_logging_enabled.",
+      "id": 6,
+      "title": "Logging enabled",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_logging_enabled{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "__auto",
+          "range": true,
+          "instant": false,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "description": "All policies (enabled and disabled) grouped by action. Source: unpoller_firewall_rules_by_action.",
+      "id": 7,
+      "title": "Rules by action",
+      "type": "piechart",
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 0,
+        "y": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ALLOW"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "BLOCK"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "REJECT"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "pieType": "donut",
+        "displayLabels": [
+          "value"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (action) (unpoller_firewall_rules_by_action{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "{{action}}",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "description": "UniFi-generated zone policies versus policies you created.",
+      "id": 8,
+      "title": "Predefined vs custom",
+      "type": "piechart",
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 6,
+        "y": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Predefined"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Custom"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "pieType": "donut",
+        "displayLabels": [
+          "value"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_predefined{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "Predefined",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_custom{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "Custom",
+          "range": false,
+          "instant": true,
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "id": 9,
+      "title": "Rules enabled",
+      "type": "gauge",
+      "description": "Share of policies that are enabled (enabled / total).",
+      "gridPos": {
+        "h": 9,
+        "w": 4,
+        "x": 12,
+        "y": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "unit": "percent",
+          "mappings": [],
+          "noValue": "\u2014",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "green",
+                "value": 95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "100 * sum(unpoller_firewall_rules_enabled{source=~\"$Controller\",site_name=~\"$Site\"}) / sum(unpoller_firewall_rules_total{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "__auto",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "id": 10,
+      "title": "Rules by protocol",
+      "type": "bargauge",
+      "description": "Policies grouped by protocol, filtered by the Action and Rule selectors. Counted from per-rule series (unpoller_firewall_rule_enabled); UnPoller merges rules that share an identical name, action, protocol, IP version and zones into one series, so this can be slightly lower than Total Rules.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "decimals": 0,
+          "min": 0,
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "all"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Any"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tcp_udp"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "TCP/UDP"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tcp"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "TCP"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "udp"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "UDP"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "icmp"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "ICMP"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "icmpv6"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "ICMPv6"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "namePlacement": "left",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color",
+        "minVizHeight": 16,
+        "maxVizHeight": 300,
+        "minVizWidth": 8,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sort_desc(count by (protocol) (unpoller_firewall_rule_enabled{source=~\"$Controller\",site_name=~\"$Site\",action=~\"$Action\",rule_name=~\"$Rule\"}))",
+          "legendFormat": "{{protocol}}",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "id": 11,
+      "title": "Rule inventory over time",
+      "type": "timeseries",
+      "description": "How the policy set changes over time. Steps in these lines mean someone added, removed, enabled or disabled policies.",
+      "gridPos": {
+        "h": 9,
+        "w": 16,
+        "x": 0,
+        "y": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "min": 0,
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": true,
+            "axisPlacement": "auto",
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Enabled"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Disabled"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Custom"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Logging"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_total{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "Total",
+          "range": true,
+          "instant": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_enabled{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "Enabled",
+          "range": true,
+          "instant": false,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_disabled{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "Disabled",
+          "range": true,
+          "instant": false,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_custom{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "Custom",
+          "range": true,
+          "instant": false,
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(unpoller_firewall_rules_logging_enabled{source=~\"$Controller\",site_name=~\"$Site\"})",
+          "legendFormat": "Logging",
+          "range": true,
+          "instant": false,
+          "refId": "E"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "id": 12,
+      "title": "Changes in selected time range",
+      "type": "stat",
+      "description": "Configuration drift detector for the dashboard's time range. Rule count changes: how often the total number of policies changed. Enable/disable toggles: how often any policy was switched on or off. Priority changes: how often any policy's order changed. Anything above zero that you didn't do yourself deserves a look. Note: adding and removing a policy between two scrapes nets to zero.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(changes(unpoller_firewall_rules_total{source=~\"$Controller\",site_name=~\"$Site\"}[$__range]))",
+          "legendFormat": "Rule count changes",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(changes(unpoller_firewall_rule_enabled{source=~\"$Controller\",site_name=~\"$Site\"}[$__range]))",
+          "legendFormat": "Enable/disable toggles",
+          "range": false,
+          "instant": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(changes(unpoller_firewall_rule_index{source=~\"$Controller\",site_name=~\"$Site\"}[$__range]))",
+          "legendFormat": "Priority changes",
+          "range": false,
+          "instant": true,
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 13,
+      "panels": [],
+      "title": "Firewall policies",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "id": 14,
+      "title": "Firewall policies",
+      "type": "table",
+      "description": "Every firewall policy, sorted by priority. Use the column filter icons or the Action / Rule selectors at the top. Zones are shown as UniFi zone IDs: UnPoller's policy metrics carry zone IDs, not zone names. Policies that share an identical name, action, protocol, IP version and zones appear as a single row. Zone names come from a fixed ID-to-name map for this controller; a zone created later shows as its ID until it is added to the map.",
+      "gridPos": {
+        "h": 16,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "inspect": false,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "Enabled",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "0": {
+                        "text": "Disabled",
+                        "color": "dark-orange",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "ALLOW": {
+                        "text": "ALLOW",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "BLOCK": {
+                        "text": "BLOCK",
+                        "color": "red",
+                        "index": 1
+                      },
+                      "REJECT": {
+                        "text": "REJECT",
+                        "color": "orange",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Priority"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Policy"
+            },
+            "properties": [
+              {
+                "id": "custom.minWidth",
+                "value": 220
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Protocol"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "all": {
+                        "text": "Any",
+                        "index": 0
+                      },
+                      "tcp_udp": {
+                        "text": "TCP/UDP",
+                        "index": 1
+                      },
+                      "tcp": {
+                        "text": "TCP",
+                        "index": 2
+                      },
+                      "udp": {
+                        "text": "UDP",
+                        "index": 3
+                      },
+                      "icmp": {
+                        "text": "ICMP",
+                        "index": 4
+                      },
+                      "icmpv6": {
+                        "text": "ICMPv6",
+                        "index": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "IP Version"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "BOTH": {
+                        "text": "IPv4 + IPv6",
+                        "index": 0
+                      },
+                      "IPV4": {
+                        "text": "IPv4",
+                        "index": 1
+                      },
+                      "IPV6": {
+                        "text": "IPv6",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Source zone"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "6a14650d23d5f4b196f02728": {
+                        "text": "Internal",
+                        "index": 0
+                      },
+                      "6a14650d23d5f4b196f02729": {
+                        "text": "External",
+                        "index": 1
+                      },
+                      "6a14650d23d5f4b196f0272a": {
+                        "text": "Gateway",
+                        "index": 2
+                      },
+                      "6a14650d23d5f4b196f0272b": {
+                        "text": "VPN",
+                        "index": 3
+                      },
+                      "6a14650d23d5f4b196f0272c": {
+                        "text": "Hotspot",
+                        "index": 4
+                      },
+                      "6a14650d23d5f4b196f0272d": {
+                        "text": "DMZ",
+                        "index": 5
+                      },
+                      "6a3a9bae4290f9d263862c96": {
+                        "text": "untrust",
+                        "index": 6
+                      },
+                      "6a81b0016e1a1d09a7eaa638": {
+                        "text": "Blackhole",
+                        "index": 7
+                      },
+                      "6a8deba26e1a1d09a73d9a0e": {
+                        "text": "Guest-Zone",
+                        "index": 8
+                      },
+                      "6acd23f616e369409dc68c3e": {
+                        "text": "DNS",
+                        "index": 9
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Destination zone"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "6a14650d23d5f4b196f02728": {
+                        "text": "Internal",
+                        "index": 0
+                      },
+                      "6a14650d23d5f4b196f02729": {
+                        "text": "External",
+                        "index": 1
+                      },
+                      "6a14650d23d5f4b196f0272a": {
+                        "text": "Gateway",
+                        "index": 2
+                      },
+                      "6a14650d23d5f4b196f0272b": {
+                        "text": "VPN",
+                        "index": 3
+                      },
+                      "6a14650d23d5f4b196f0272c": {
+                        "text": "Hotspot",
+                        "index": 4
+                      },
+                      "6a14650d23d5f4b196f0272d": {
+                        "text": "DMZ",
+                        "index": 5
+                      },
+                      "6a3a9bae4290f9d263862c96": {
+                        "text": "untrust",
+                        "index": 6
+                      },
+                      "6a81b0016e1a1d09a7eaa638": {
+                        "text": "Blackhole",
+                        "index": 7
+                      },
+                      "6a8deba26e1a1d09a73d9a0e": {
+                        "text": "Guest-Zone",
+                        "index": 8
+                      },
+                      "6acd23f616e369409dc68c3e": {
+                        "text": "DNS",
+                        "index": 9
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": "",
+          "countRows": false
+        },
+        "sortBy": [
+          {
+            "displayName": "Priority",
+            "desc": false
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (rule_name, action, protocol, ip_version, source_zone, dest_zone, site_name, source) (unpoller_firewall_rule_enabled{source=~\"$Controller\",site_name=~\"$Site\",action=~\"$Action\",rule_name=~\"$Rule\"})",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "refId": "A",
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (rule_name, action, protocol, ip_version, source_zone, dest_zone, site_name, source) (unpoller_firewall_rule_index{source=~\"$Controller\",site_name=~\"$Site\",action=~\"$Action\",rule_name=~\"$Rule\"})",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "refId": "B",
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "Value #B": 0,
+              "rule_name": 1,
+              "action": 2,
+              "Value #A": 3,
+              "protocol": 4,
+              "ip_version": 5,
+              "source_zone": 6,
+              "dest_zone": 7,
+              "site_name": 8,
+              "source": 9
+            },
+            "renameByName": {
+              "Value #B": "Priority",
+              "rule_name": "Policy",
+              "action": "Action",
+              "Value #A": "State",
+              "protocol": "Protocol",
+              "ip_version": "IP Version",
+              "source_zone": "Source zone",
+              "dest_zone": "Destination zone",
+              "site_name": "Site",
+              "source": "Controller"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "id": 15,
+      "panels": [],
+      "title": "Firewall blocks",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 16,
+      "title": "Blocked connections",
+      "type": "stat",
+      "description": "Connections blocked by a firewall policy in the selected time range. Source: UniFi System Log 'Blocked by Firewall' entries, pushed to Loki by UnPoller. UniFi does not include ports or protocol in these entries.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 40
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 17,
+      "title": "From the internet",
+      "type": "stat",
+      "description": "Blocks whose source is a public address, typically scanners and bots probing your public IPs. Source: UniFi System Log 'Blocked by Firewall' entries, pushed to Loki by UnPoller. UniFi does not include ports or protocol in these entries.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 40
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` | srcaddr !~ `(10|127)\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[01])\\..*|f[cd][0-9a-f]{2}:.*|fe80:.*` [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 18,
+      "title": "From your network",
+      "type": "stat",
+      "description": "Blocks whose source is a private address inside your network (a device or VLAN hitting a block policy). Worth a look: often a misconfigured device, sometimes a policy that is too strict. Source: UniFi System Log 'Blocked by Firewall' entries, pushed to Loki by UnPoller. UniFi does not include ports or protocol in these entries.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 40
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` | srcaddr =~ `(10|127)\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[01])\\..*|f[cd][0-9a-f]{2}:.*|fe80:.*` [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 19,
+      "title": "Unique blocked sources",
+      "type": "stat",
+      "description": "Number of different sources (IPs or devices) that were blocked in the selected time range. Source: UniFi System Log 'Blocked by Firewall' entries, pushed to Loki by UnPoller. UniFi does not include ports or protocol in these entries.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 40
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "count(sum by (src) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` [$__range])))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 20,
+      "title": "Blocks over time",
+      "type": "timeseries",
+      "description": "Blocked connections per time bucket, split by where they came from. Internet traffic is mostly scanners hitting your WAN address and is shown in grey; blocks from your own network are the ones worth reading. Source: UniFi System Log 'Blocked by Firewall' entries, pushed to Loki by UnPoller.",
+      "gridPos": {
+        "h": 9,
+        "w": 16,
+        "x": 0,
+        "y": 44
+      },
+      "interval": "5m",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8e8e93"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "min": 0,
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 8,
+            "lineWidth": 2,
+            "showPoints": "never",
+            "gradientMode": "none",
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            },
+            "lineInterpolation": "smooth"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "From your network"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 16
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "queryType": "range",
+          "refId": "A",
+          "legendFormat": "From the internet",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` | srcaddr !~ `(10|127)\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[01])\\..*|f[cd][0-9a-f]{2}:.*|fe80:.*` [$__auto]))"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "queryType": "range",
+          "refId": "B",
+          "legendFormat": "From your network",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` | srcaddr =~ `(10|127)\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[01])\\..*|f[cd][0-9a-f]{2}:.*|fe80:.*` [$__auto]))"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 41,
+      "title": "Your network: blocks by policy",
+      "type": "bargauge",
+      "description": "Which firewall policies are blocking your own devices, with internet scanner traffic left out. Use it to spot a device hitting a rule over and over, or a rule that is stricter than intended.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 44
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          },
+          "decimals": 0,
+          "min": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "No blocks in this time range",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "namePlacement": "top",
+        "showUnfilled": true,
+        "sizing": "manual",
+        "minVizHeight": 18,
+        "maxVizHeight": 22,
+        "minVizWidth": 8,
+        "valueMode": "color",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 14
+        },
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Value/",
+          "values": true
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "queryType": "instant",
+          "refId": "A",
+          "legendFormat": "{{policy}}",
+          "expr": "topk(10, sum by (policy) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` | srcaddr =~ `(10|127)\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[01])\\..*|f[cd][0-9a-f]{2}:.*|fe80:.*` [$__range])))"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Value #A",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 21,
+      "title": "Top blocking policies",
+      "type": "bargauge",
+      "description": "The firewall policies that blocked the most connections in the selected time range. Source: UniFi System Log 'Blocked by Firewall' entries, pushed to Loki by UnPoller. UniFi does not include ports or protocol in these entries.",
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 0,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "decimals": 0,
+          "min": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "No blocks in this time range",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "namePlacement": "top",
+        "showUnfilled": true,
+        "sizing": "manual",
+        "minVizHeight": 18,
+        "maxVizHeight": 22,
+        "minVizWidth": 8,
+        "valueMode": "color",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 14
+        },
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Value/",
+          "values": true
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (policy) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` [$__range])))",
+          "legendFormat": "{{policy}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Value #A",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 22,
+      "title": "Top internet sources",
+      "type": "bargauge",
+      "description": "Public IP addresses blocked most often. Repeat offenders are good candidates for a block list. Source: UniFi System Log 'Blocked by Firewall' entries, pushed to Loki by UnPoller. UniFi does not include ports or protocol in these entries.",
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 6,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-YlRd"
+          },
+          "decimals": 0,
+          "min": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "No internet blocks in this time range",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "namePlacement": "top",
+        "showUnfilled": true,
+        "sizing": "manual",
+        "minVizHeight": 18,
+        "maxVizHeight": 22,
+        "minVizWidth": 8,
+        "valueMode": "color",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 14
+        },
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Value/",
+          "values": true
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (src) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` | srcaddr !~ `(10|127)\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[01])\\..*|f[cd][0-9a-f]{2}:.*|fe80:.*` [$__range])))",
+          "legendFormat": "{{src}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Value #A",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 23,
+      "title": "Your blocked devices",
+      "type": "bargauge",
+      "description": "Devices or private IPs on your network that were blocked most often. UniFi names known clients (name plus the last part of the MAC); unknown ones appear as their IP. Source: UniFi System Log 'Blocked by Firewall' entries, pushed to Loki by UnPoller. UniFi does not include ports or protocol in these entries.",
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 12,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-YlBl"
+          },
+          "decimals": 0,
+          "min": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "No devices on your network were blocked",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "namePlacement": "top",
+        "showUnfilled": true,
+        "sizing": "manual",
+        "minVizHeight": 18,
+        "maxVizHeight": 22,
+        "minVizWidth": 8,
+        "valueMode": "color",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 14
+        },
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Value/",
+          "values": true
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (src) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` | srcaddr =~ `(10|127)\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[01])\\..*|f[cd][0-9a-f]{2}:.*|fe80:.*` [$__range])))",
+          "legendFormat": "{{src}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Value #A",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 24,
+      "title": "Most targeted destinations",
+      "type": "bargauge",
+      "description": "What the blocked connections were trying to reach: your public IPs for internet traffic, or a device/IP for internal traffic. Source: UniFi System Log 'Blocked by Firewall' entries, pushed to Loki by UnPoller. UniFi does not include ports or protocol in these entries.",
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 18,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "decimals": 0,
+          "min": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "No blocks in this time range",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "namePlacement": "top",
+        "showUnfilled": true,
+        "sizing": "manual",
+        "minVizHeight": 18,
+        "maxVizHeight": 22,
+        "minVizWidth": 8,
+        "valueMode": "color",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 14
+        },
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Value/",
+          "values": true
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (dst) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` [$__range])))",
+          "legendFormat": "{{dst}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Value #A",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 25,
+      "title": "Recent blocks from your network",
+      "type": "logs",
+      "description": "Blocked connections that started on your own network, newest first. Click a line for all details (MAC, device, policy ID).",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 63
+      },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableInfiniteScrolling": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "{application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` | srcaddr =~ `(10|127)\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[01])\\..*|f[cd][0-9a-f]{2}:.*|fe80:.*` | json msg=\"message\" | line_format `{{.msg}}`",
+          "legendFormat": "",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 42,
+      "title": "Recent blocks from the internet",
+      "type": "logs",
+      "description": "Inbound connections from the internet that a firewall policy blocked, newest first. Mostly scanners probing your WAN address.",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 63
+      },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableInfiniteScrolling": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "{application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", policy=\"parameters.TRIGGER.name\", sip=\"parameters.SRC_IP.name\", scl=\"parameters.SRC_CLIENT.name\", sclip=\"parameters.SRC_CLIENT.ip\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, srcaddr=`{{ or .sclip .sip }}`, dst=`{{ or .ddev .dip }}` | srcaddr !~ `(10|127)\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[01])\\..*|f[cd][0-9a-f]{2}:.*|fe80:.*` | json msg=\"message\" | line_format `{{.msg}}`",
+          "legendFormat": "",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 73
+      },
+      "id": 26,
+      "panels": [],
+      "title": "Threat detection (IPS / honeypot)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 27,
+      "title": "Threats detected",
+      "type": "stat",
+      "description": "All threat detections in the selected time range. Source: UniFi System Log Security entries other than firewall blocks (intrusion prevention/detection, honeypot), pushed to Loki by UnPoller. These entries name the clients involved (or their MAC address when UniFi has no name for them) but carry no IP addresses, signature or threat category; see Insights > Inspection in UniFi for those details.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 74
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} != `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", evt=\"event\", scl=\"parameters.SRC_CLIENT.name\", sip=\"parameters.SRC_IP.name\", dcl=\"parameters.DST_CLIENT.name\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub!=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, dst=`{{ or .dcl .dip .ddev }}`, type=`{{ regexReplaceAll \"_\" (regexReplaceAll \"^SECURITY_\" .sub \"\") \" \" }}` [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 28,
+      "title": "Blocked by IPS",
+      "type": "stat",
+      "description": "Threats that UniFi's Intrusion Prevention detected and blocked. Source: UniFi System Log Security entries other than firewall blocks (intrusion prevention/detection, honeypot), pushed to Loki by UnPoller. These entries name the clients involved (or their MAC address when UniFi has no name for them) but carry no IP addresses, signature or threat category; see Insights > Inspection in UniFi for those details.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 74
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} != `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", evt=\"event\", scl=\"parameters.SRC_CLIENT.name\", sip=\"parameters.SRC_IP.name\", dcl=\"parameters.DST_CLIENT.name\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub!=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, dst=`{{ or .dcl .dip .ddev }}`, type=`{{ regexReplaceAll \"_\" (regexReplaceAll \"^SECURITY_\" .sub \"\") \" \" }}` | evt=~\"(?i).*block.*\" [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 29,
+      "title": "Detected, not blocked",
+      "type": "stat",
+      "description": "Threats UniFi detected but did not block: alerts from detection-only (IDS) mode and honeypot triggers. Review each of these. Source: UniFi System Log Security entries other than firewall blocks (intrusion prevention/detection, honeypot), pushed to Loki by UnPoller. These entries name the clients involved (or their MAC address when UniFi has no name for them) but carry no IP addresses, signature or threat category; see Insights > Inspection in UniFi for those details.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 74
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} != `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", evt=\"event\", scl=\"parameters.SRC_CLIENT.name\", sip=\"parameters.SRC_IP.name\", dcl=\"parameters.DST_CLIENT.name\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub!=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, dst=`{{ or .dcl .dip .ddev }}`, type=`{{ regexReplaceAll \"_\" (regexReplaceAll \"^SECURITY_\" .sub \"\") \" \" }}` | evt!~\"(?i).*block.*\" [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 30,
+      "title": "High / very high",
+      "type": "stat",
+      "description": "Threat detections rated HIGH or VERY_HIGH by UniFi. Source: UniFi System Log Security entries other than firewall blocks (intrusion prevention/detection, honeypot), pushed to Loki by UnPoller. These entries name the clients involved (or their MAC address when UniFi has no name for them) but carry no IP addresses, signature or threat category; see Insights > Inspection in UniFi for those details.",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 74
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\", severity=~\"HIGH|VERY_HIGH\"} != `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", evt=\"event\", scl=\"parameters.SRC_CLIENT.name\", sip=\"parameters.SRC_IP.name\", dcl=\"parameters.DST_CLIENT.name\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub!=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, dst=`{{ or .dcl .dip .ddev }}`, type=`{{ regexReplaceAll \"_\" (regexReplaceAll \"^SECURITY_\" .sub \"\") \" \" }}` [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 31,
+      "title": "Threats over time by type",
+      "type": "timeseries",
+      "description": "Threat detections per time bucket, stacked by UniFi threat type. Source: UniFi System Log Security entries other than firewall blocks (intrusion prevention/detection, honeypot), pushed to Loki by UnPoller. These entries name the clients involved (or their MAC address when UniFi has no name for them) but carry no IP addresses, signature or threat category; see Insights > Inspection in UniFi for those details.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 78
+      },
+      "interval": "5m",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "min": 0,
+          "mappings": [],
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 85,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "gradientMode": "none",
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (type) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} != `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", evt=\"event\", scl=\"parameters.SRC_CLIENT.name\", sip=\"parameters.SRC_IP.name\", dcl=\"parameters.DST_CLIENT.name\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub!=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, dst=`{{ or .dcl .dip .ddev }}`, type=`{{ regexReplaceAll \"_\" (regexReplaceAll \"^SECURITY_\" .sub \"\") \" \" }}` [$__auto]))",
+          "legendFormat": "{{type}}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 32,
+      "title": "Threat sources",
+      "type": "bargauge",
+      "description": "Clients (by name, or MAC when unnamed) or IPs that triggered the most threat detections. Source: UniFi System Log Security entries other than firewall blocks (intrusion prevention/detection, honeypot), pushed to Loki by UnPoller. These entries name the clients involved (or their MAC address when UniFi has no name for them) but carry no IP addresses, signature or threat category; see Insights > Inspection in UniFi for those details.",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 78
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-YlRd"
+          },
+          "decimals": 0,
+          "min": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "No threats in this time range",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "namePlacement": "top",
+        "showUnfilled": true,
+        "sizing": "manual",
+        "minVizHeight": 18,
+        "maxVizHeight": 22,
+        "minVizWidth": 8,
+        "valueMode": "color",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 14
+        },
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Value/",
+          "values": true
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (src) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} != `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", evt=\"event\", scl=\"parameters.SRC_CLIENT.name\", sip=\"parameters.SRC_IP.name\", dcl=\"parameters.DST_CLIENT.name\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub!=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, dst=`{{ or .dcl .dip .ddev }}`, type=`{{ regexReplaceAll \"_\" (regexReplaceAll \"^SECURITY_\" .sub \"\") \" \" }}` [$__range])))",
+          "legendFormat": "{{src}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Value #A",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 33,
+      "title": "Threat targets",
+      "type": "bargauge",
+      "description": "What the detected threats were aimed at. Honeypot triggers have no target and are not listed. Source: UniFi System Log Security entries other than firewall blocks (intrusion prevention/detection, honeypot), pushed to Loki by UnPoller. These entries name the clients involved (or their MAC address when UniFi has no name for them) but carry no IP addresses, signature or threat category; see Insights > Inspection in UniFi for those details.",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 78
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "decimals": 0,
+          "min": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "No threats with a target in this time range",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "namePlacement": "top",
+        "showUnfilled": true,
+        "sizing": "manual",
+        "minVizHeight": 18,
+        "maxVizHeight": 22,
+        "minVizWidth": 8,
+        "valueMode": "color",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 14
+        },
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Value/",
+          "values": true
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (dst) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} != `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", evt=\"event\", scl=\"parameters.SRC_CLIENT.name\", sip=\"parameters.SRC_IP.name\", dcl=\"parameters.DST_CLIENT.name\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub!=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, dst=`{{ or .dcl .dip .ddev }}`, type=`{{ regexReplaceAll \"_\" (regexReplaceAll \"^SECURITY_\" .sub \"\") \" \" }}` | dst!=\"\" [$__range])))",
+          "legendFormat": "{{dst}}",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Value #A",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "id": 34,
+      "title": "Threat clients: MAC to IP lookup",
+      "type": "table",
+      "description": "Every client MAC involved in a threat, matched to the IP, name and network UniFi reported for that MAC during the selected time range (from UnPoller's client metrics). Several rows for one MAC mean its IP changed during the range. 'not found' means UniFi never listed that MAC as a client in this range: UniFi devices (gateway, switches, APs), very short connections, a private/randomized MAC that has since changed, or data older than Prometheus keeps (15 days by default). Treat the match as a strong clue, not proof. Source: UniFi System Log Security entries other than firewall blocks (intrusion prevention/detection, honeypot), pushed to Loki by UnPoller. These entries name the clients involved (or their MAC address when UniFi has no name for them) but carry no IP addresses, signature or threat category; see Insights > Inspection in UniFi for those details.",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 86
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "inspect": false,
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(IP|Client name|Network)$"
+            },
+            "properties": [
+              {
+                "id": "noValue",
+                "value": "not found"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^Threats as (source|target)$"
+            },
+            "properties": [
+              {
+                "id": "noValue",
+                "value": "0"
+              },
+              {
+                "id": "custom.width",
+                "value": 175
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": "",
+          "countRows": false
+        },
+        "sortBy": [
+          {
+            "displayName": "Threats as source",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (mac) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} != `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", smac=\"parameters.SRC_CLIENT.id\", dmac=\"parameters.DST_CLIENT.id\" | sub!=\"SECURITY_FIREWALL\" | smac!=\"\" | label_format mac=`{{ ToLower .smac }}` [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (mac) (count_over_time({application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} != `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", smac=\"parameters.SRC_CLIENT.id\", dmac=\"parameters.DST_CLIENT.id\" | sub!=\"SECURITY_FIREWALL\" | dmac!=\"\" | label_format mac=`{{ ToLower .dmac }}` [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (mac, ip, name, network, vlan) (last_over_time(unpoller_client_uptime_seconds{source=~\"$Controller\", site_name=~\"$Site\"}[$__range]))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "refId": "C",
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "mac",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "Value #A",
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                }
+              },
+              {
+                "fieldName": "Value #B",
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Value #C": true,
+              "Value": true
+            },
+            "indexByName": {
+              "mac": 0,
+              "name": 1,
+              "ip": 2,
+              "network": 3,
+              "vlan": 4,
+              "Value #A": 5,
+              "Value #B": 6
+            },
+            "renameByName": {
+              "mac": "MAC",
+              "name": "Client name",
+              "ip": "IP",
+              "network": "Network",
+              "vlan": "VLAN",
+              "Value #A": "Threats as source",
+              "Value #B": "Threats as target"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 35,
+      "title": "Recent threats",
+      "type": "logs",
+      "description": "Threat detections, newest first, as UniFi describes them. Click a line for every field UniFi sent (client MACs, the detecting device). Source: UniFi System Log Security entries other than firewall blocks (intrusion prevention/detection, honeypot), pushed to Loki by UnPoller. These entries name the clients involved (or their MAC address when UniFi has no name for them) but carry no IP addresses, signature or threat category; see Insights > Inspection in UniFi for those details.",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 93
+      },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableInfiniteScrolling": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "{application=\"unifi_system_log\", category=\"SECURITY\", source=~\"$Controller\", site_name=~\"$Site\"} != `\"subcategory\":\"SECURITY_FIREWALL\"` | json sub=\"subcategory\", evt=\"event\", scl=\"parameters.SRC_CLIENT.name\", sip=\"parameters.SRC_IP.name\", dcl=\"parameters.DST_CLIENT.name\", dip=\"parameters.DST_IP.name\", ddev=\"parameters.DST_DEVICE.name\" | sub!=\"SECURITY_FIREWALL\" | label_format src=`{{ or .scl .sip }}`, dst=`{{ or .dcl .dip .ddev }}`, type=`{{ regexReplaceAll \"_\" (regexReplaceAll \"^SECURITY_\" .sub \"\") \" \" }}` | json msg=\"message\" | line_format `[{{.severity}}] {{.msg}}`",
+          "legendFormat": "",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 101
+      },
+      "id": 43,
+      "panels": [],
+      "title": "Firewall changes and admin access (UniFi audit log)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 44,
+      "title": "Firewall changes",
+      "type": "stat",
+      "description": "Firewall policy, firewall group and NAT changes made in UniFi Network in the selected time range.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 102
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"AUDIT\", source=~\"$Controller\", site_name=~\"$Site\"} |= `FIREWALL` | json evt=\"event\", section=\"parameters.SECTION.id\", obj=\"parameters.OBJECT.name\", admin=\"parameters.ADMIN.name\", ip=\"parameters.IP.name\" | section=~`FIREWALL_.*|NAT` [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 45,
+      "title": "Policies created",
+      "type": "stat",
+      "description": "Firewall policies, groups and NAT rules created in the selected time range.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 102
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"AUDIT\", source=~\"$Controller\", site_name=~\"$Site\"} |= `FIREWALL` | json evt=\"event\", section=\"parameters.SECTION.id\", obj=\"parameters.OBJECT.name\", admin=\"parameters.ADMIN.name\", ip=\"parameters.IP.name\" | section=~`FIREWALL_.*|NAT` | evt=\"GENERATED\" [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 46,
+      "title": "Policies removed",
+      "type": "stat",
+      "description": "Firewall policies, groups and NAT rules deleted in the selected time range.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 102
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"AUDIT\", source=~\"$Controller\", site_name=~\"$Site\"} |= `FIREWALL` | json evt=\"event\", section=\"parameters.SECTION.id\", obj=\"parameters.OBJECT.name\", admin=\"parameters.ADMIN.name\", ip=\"parameters.IP.name\" | section=~`FIREWALL_.*|NAT` | evt=\"REMOVED_ENTITY\" [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 47,
+      "title": "Admin logins",
+      "type": "stat",
+      "description": "Times an admin opened UniFi Network in the selected time range.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 102
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"AUDIT\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"event\":\"ADMIN_ACCESS\"` | json evt=\"event\", admin=\"parameters.ADMIN.name\", ip=\"parameters.IP.name\" | evt=\"ADMIN_ACCESS\" [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 48,
+      "title": "Logins from outside your LAN",
+      "type": "stat",
+      "description": "Admin logins whose source IP is not a private address, for example over the internet or through unifi.ui.com. Check the sources below if you do not recognise them.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 102
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({application=\"unifi_system_log\", category=\"AUDIT\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"event\":\"ADMIN_ACCESS\"` | json evt=\"event\", admin=\"parameters.ADMIN.name\", ip=\"parameters.IP.name\" | evt=\"ADMIN_ACCESS\" | ip !~ `(10|127)\\..*|192\\.168\\..*|172\\.(1[6-9]|2[0-9]|3[01])\\..*|f[cd][0-9a-f]{2}:.*|fe80:.*` [$__range]))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 49,
+      "title": "Admin source IPs",
+      "type": "stat",
+      "description": "Distinct IP addresses admins logged in from in the selected time range.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 102
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "none",
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "count(sum by (ip) (count_over_time({application=\"unifi_system_log\", category=\"AUDIT\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"event\":\"ADMIN_ACCESS\"` | json evt=\"event\", admin=\"parameters.ADMIN.name\", ip=\"parameters.IP.name\" | evt=\"ADMIN_ACCESS\" [$__range])))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 50,
+      "title": "Firewall change log",
+      "type": "logs",
+      "description": "Every firewall policy, firewall group and NAT change, newest first: who made it, what changed and the IP it came from. Click a line for the setting that changed.",
+      "gridPos": {
+        "h": 11,
+        "w": 15,
+        "x": 0,
+        "y": 106
+      },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableInfiniteScrolling": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "queryType": "range",
+          "refId": "A",
+          "legendFormat": "",
+          "expr": "{application=\"unifi_system_log\", category=\"AUDIT\", source=~\"$Controller\", site_name=~\"$Site\"} |= `FIREWALL` | json evt=\"event\", section=\"parameters.SECTION.id\", obj=\"parameters.OBJECT.name\", admin=\"parameters.ADMIN.name\", ip=\"parameters.IP.name\" | section=~`FIREWALL_.*|NAT` | json msg=\"message\" | line_format `{{.msg}}`"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 51,
+      "title": "Admin logins by source",
+      "type": "table",
+      "description": "Who logged in to UniFi Network and from which IP. Addresses outside your LAN are shown in orange.",
+      "gridPos": {
+        "h": 11,
+        "w": 9,
+        "x": 15,
+        "y": 106
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Logins"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Source IP"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^(10|127)\\..*|^192\\.168\\..*|^172\\.(1[6-9]|2[0-9]|3[01])\\..*|^f[cd][0-9a-f]{2}:.*|^fe80:.*",
+                      "result": {
+                        "color": "text",
+                        "index": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Logins",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "queryType": "instant",
+          "refId": "A",
+          "legendFormat": "",
+          "format": "table",
+          "expr": "sum by (admin, ip) (count_over_time({application=\"unifi_system_log\", category=\"AUDIT\", source=~\"$Controller\", site_name=~\"$Site\"} |= `\"event\":\"ADMIN_ACCESS\"` | json evt=\"event\", admin=\"parameters.ADMIN.name\", ip=\"parameters.IP.name\" | evt=\"ADMIN_ACCESS\" [$__range]))"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "admin": 0,
+              "ip": 1,
+              "Value": 2,
+              "Value #A": 2
+            },
+            "renameByName": {
+              "admin": "Admin",
+              "ip": "Source IP",
+              "Value": "Logins",
+              "Value #A": "Logins"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 117
+      },
+      "id": 37,
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "id": 36,
+          "title": "Policies disabled in this time range",
+          "type": "state-timeline",
+          "description": "Enabled/disabled history for every policy that was disabled at any point in the selected time range (including policies that are still disabled). Always-on policies are left out to keep this readable, so 'No data' means no policy was disabled in this time range.",
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 118
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "fixed",
+                "fixedColor": "text"
+              },
+              "custom": {
+                "fillOpacity": 75,
+                "lineWidth": 0,
+                "spanNulls": false,
+                "insertNulls": false,
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "1": {
+                      "text": "Enabled",
+                      "color": "green",
+                      "index": 0
+                    },
+                    "0": {
+                      "text": "Disabled",
+                      "color": "dark-orange",
+                      "index": 1
+                    }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "alignValue": "center",
+            "mergeValues": true,
+            "rowHeight": 0.8,
+            "showValue": "auto",
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "Prometheus"
+              },
+              "editorMode": "code",
+              "expr": "max by (rule_name, action, protocol, source_zone, dest_zone) (unpoller_firewall_rule_enabled{source=~\"$Controller\",site_name=~\"$Site\",action=~\"$Action\",rule_name=~\"$Rule\"})\n  and on (rule_name, action, protocol, source_zone, dest_zone)\n(min by (rule_name, action, protocol, source_zone, dest_zone) (min_over_time(unpoller_firewall_rule_enabled{source=~\"$Controller\",site_name=~\"$Site\",action=~\"$Action\",rule_name=~\"$Rule\"}[$__range] @ end())) == 0)",
+              "legendFormat": "{{rule_name}} ({{action}})",
+              "range": true,
+              "instant": false,
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "title": "Policy state history",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 118
+      },
+      "id": 40,
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "id": 38,
+          "title": "Networks per firewall zone",
+          "type": "bargauge",
+          "description": "How many networks (VLANs/subnets) are assigned to each firewall zone. External counts your WAN connections; Gateway is the console itself and is always 0. Source: unpoller_firewall_zone_network_count (UniFi Integration API, needs an API key).",
+          "gridPos": {
+            "h": 9,
+            "w": 14,
+            "x": 0,
+            "y": 119
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "fixed",
+                "fixedColor": "#8e8e93"
+              },
+              "decimals": 0,
+              "min": 0,
+              "unit": "none",
+              "mappings": [],
+              "noValue": "No zone data: UnPoller needs UP_UNIFI_CONTROLLER_0_API_KEY",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "basic",
+            "orientation": "horizontal",
+            "namePlacement": "left",
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color",
+            "minVizHeight": 16,
+            "maxVizHeight": 300,
+            "minVizWidth": 8,
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "Prometheus"
+              },
+              "editorMode": "code",
+              "expr": "sort_desc(max by (site_name, name, origin) (unpoller_firewall_zone_network_count))",
+              "legendFormat": "{{name}}",
+              "range": false,
+              "instant": true,
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 39,
+          "title": "How to read this",
+          "type": "text",
+          "gridPos": {
+            "h": 9,
+            "w": 10,
+            "x": 14,
+            "y": 119
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### What the numbers mean\n\nEach bar is a firewall zone. The number is **how many networks (VLANs / subnets) are assigned to it**.\n\n- **Internal, Guest-Zone, DNS, Blackhole, untrust**: your LAN networks, grouped by the zone you put them in\n- **External**: your WAN connections, one per internet uplink or WAN-side network\n- **Vpn**: VPN server networks\n- **Gateway**: the UDM itself, always 0 because no network belongs to it\n- **Hotspot, Dmz**: built-in zones you are not using yet\n\nZones you created yourself are *user defined*, the rest come with UniFi. Firewall policies are written between zones, so the *Source zone* and *Destination zone* columns in the Firewall policies table refer to these same zones.\n\nA count that changes means a network was moved between zones. A zone at 0 has no networks, so its policies match nothing.\n\n<small>Source: UniFi Integration API through UnPoller (needs `UP_UNIFI_CONTROLLER_0_API_KEY`).</small>",
+            "code": {
+              "language": "plaintext",
+              "showLineNumbers": false,
+              "showMiniMap": false
+            }
+          }
+        }
+      ],
+      "title": "Firewall zones",
+      "type": "row"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": [
+    "unifi",
+    "unifi-poller",
+    "firewall"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "Prometheus"
+        },
+        "definition": "label_values(unpoller_firewall_rules_total, source)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "label": "Controller",
+        "name": "Controller",
+        "options": [],
+        "query": {
+          "query": "label_values(unpoller_firewall_rules_total, source)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "Prometheus"
+        },
+        "definition": "label_values(unpoller_firewall_rules_total{source=~\"$Controller\"}, site_name)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "label": "Site",
+        "name": "Site",
+        "options": [],
+        "query": {
+          "query": "label_values(unpoller_firewall_rules_total{source=~\"$Controller\"}, site_name)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "Prometheus"
+        },
+        "definition": "label_values(unpoller_firewall_rule_enabled{source=~\"$Controller\",site_name=~\"$Site\"}, action)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "label": "Action",
+        "name": "Action",
+        "options": [],
+        "query": {
+          "query": "label_values(unpoller_firewall_rule_enabled{source=~\"$Controller\",site_name=~\"$Site\"}, action)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "Prometheus"
+        },
+        "definition": "label_values(unpoller_firewall_rule_enabled{source=~\"$Controller\",site_name=~\"$Site\",action=~\"$Action\"}, rule_name)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "label": "Policy",
+        "name": "Rule",
+        "options": [],
+        "query": {
+          "query": "label_values(unpoller_firewall_rule_enabled{source=~\"$Controller\",site_name=~\"$Site\",action=~\"$Action\"}, rule_name)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {
+    "nowDelay": "",
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h"
+    ]
+  },
+  "timezone": "browser",
+  "title": "UniFi Firewall",
+  "uid": "unpoller-firewall",
+  "version": 2,
+  "weekStart": "",
+  "gnetId": null
+}

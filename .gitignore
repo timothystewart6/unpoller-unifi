@@ -1,0 +1,13 @@
+# Runtime data written by the containers. The folders stay in the repo
+# (via .gitkeep) so the bind mounts exist with the right owner on first start.
+grafana/data/*
+!grafana/data/.gitkeep
+prometheus/data/*
+!prometheus/data/.gitkeep
+loki/data/*
+!loki/data/.gitkeep
+reporter/out/*
+!reporter/out/.gitkeep
+
+# Backups of config files, e.g. unpoller/.env.bak, can hold credentials
+*.bak

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block body %}
+<style>
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.kinds { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--rule-2); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+.kinds input { position: absolute; opacity: 0; pointer-events: none; }
+.kinds label { margin: 0; text-align: center; padding: 7px 0; font-size: 13px; color: var(--ink-2); cursor: pointer; transition: background-color .15s, color .15s; }
+.kinds label + input + label, .kinds label:not(:first-of-type) { border-left: 1px solid var(--rule); }
+.kinds input:checked + label { background: var(--rule); color: var(--ink); font-weight: 500; }
+.kinds input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -2px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#jobs:empty { display: none; }
+#jobs { margin-bottom: 24px; }
+.job { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.job:last-child { border-bottom: 0; }
+.job .err { color: var(--bad); font-size: 13px; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } .gen { order: -1; } .hide-sm { display: none; } }
+</style>
+
+<h1>Reports</h1>
+<p class="lede">{{ schedule }}</p>
+
+<div class="layout">
+  <div>
+    <div id="jobs" class="panel">{% include "_jobs.html" %}</div>
+
+    <div class="panel">
+      <h2>Saved reports</h2>
+      {% if reports %}
+      <table>
+        <tr><th>Period</th><th class="hide-sm">Type</th><th class="hide-sm">Made</th><th></th></tr>
+        {% for r in reports %}
+        <tr>
+          <td>{{ r.period }}</td>
+          <td class="hide-sm muted">{{ r.kind }}</td>
+          <td class="hide-sm mono muted">{{ r.made.strftime('%-d %b %H:%M') }}</td>
+          <td><div class="actions">
+            <a class="btn quiet small" href="{{ url_for('download', name=r.file, view=1) }}" target="_blank" rel="noopener">View</a>
+            <a class="btn quiet small" href="{{ url_for('download', name=r.file) }}">Download</a>
+            {% if is_admin %}
+            <form method="post" action="{{ url_for('delete', name=r.file) }}" onsubmit="return confirm('Delete this report?')" style="margin:0">
+              <input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn link small" title="Delete">Delete</button>
+            </form>
+            {% endif %}
+          </div></td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% else %}
+      <p class="muted" style="margin:0">No reports yet. Make one with the form, or wait for the first scheduled report</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <form method="post" action="{{ url_for('generate') }}" class="panel gen" id="gen">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <h2>Make a report</h2>
+    <div class="kinds" role="radiogroup" aria-label="Report type">
+      {% for k, l in [('weekly','Week'),('monthly','Month'),('quarterly','Quarter'),('custom','Dates')] %}
+      <input type="radio" name="kind" id="k-{{ k }}" value="{{ k }}" {{ 'checked' if loop.first }}><label for="k-{{ k }}">{{ l }}</label>
+      {% endfor %}
+    </div>
+
+    <div class="field" id="which">
+      <label for="w">Period</label>
+      <select name="which" id="w">
+        <option value="last">The last complete one</option>
+        <option value="previous">The one before that</option>
+      </select>
+    </div>
+    <div class="two field" id="dates" hidden>
+      <div><label for="s">From</label><input type="date" name="start" id="s" value="{{ week_ago }}" max="{{ today }}"></div>
+      <div><label for="e">To</label><input type="date" name="end" id="e" value="{{ today }}" max="{{ today }}"></div>
+    </div>
+
+    <label class="check"><input type="checkbox" name="email" id="em" {{ 'disabled' if not mail_ready }}> Email it when ready</label>
+    <div class="field" id="to-wrap" hidden>
+      <input type="text" name="to" id="to" placeholder="name@example.com, …" aria-label="Send to">
+      <div class="hint">Separate addresses with commas</div>
+    </div>
+    {% if not mail_ready %}<p class="hint" style="margin:-4px 0 16px">Email isn't set up yet{% if is_admin %}, see <a href="{{ url_for('settings') }}">Settings</a>{% endif %}</p>{% endif %}
+
+    <button class="btn primary" style="width:100%">Make report</button>
+    <p class="hint" style="margin:12px 0 0">Takes about 30 seconds for a week, a few minutes for a quarter. You can leave this page while it runs</p>
+  </form>
+</div>
+
+<script>
+const recipients = {{ recipients|tojson }};
+const form = document.getElementById('gen');
+function sync() {
+  const kind = form.kind.value;
+  document.getElementById('which').hidden = kind === 'custom';
+  document.getElementById('dates').hidden = kind !== 'custom';
+  const em = document.getElementById('em');
+  document.getElementById('to-wrap').hidden = !em.checked;
+  const to = document.getElementById('to');
+  if (!to.dataset.touched) to.value = recipients[kind] || '';
+}
+form.addEventListener('change', sync);
+document.getElementById('to').addEventListener('input', e => e.target.dataset.touched = 1);
+sync();
+
+// refresh the job list while anything is queued or running
+const jobsEl = document.getElementById('jobs');
+let wasActive = false;
+async function poll() {
+  try {
+    const r = await fetch('{{ url_for("jobs_json") }}');
+    if (r.redirected) return;
+    const jobs = await r.json();
+    const active = jobs.some(j => j.status === 'queued' || j.status === 'running');
+    if (wasActive && !active) { location.reload(); return; }  // a report finished: refresh the saved list
+    wasActive = active;
+    jobsEl.innerHTML = render(jobs);
+    if (active) setTimeout(poll, 3000);
+  } catch (e) { setTimeout(poll, 10000); }
+}
+function esc(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+const words = {queued: 'Waiting', running: 'Making the report', done: 'Ready', failed: 'Failed'};
+function render(jobs) {
+  if (!jobs.length) return '';
+  return '<h2>Recent requests</h2>' + jobs.map(j => `<div class="job"><div>
+    <div><span class="dot ${j.status}"></span>${esc(j.period)} <span class="muted">${esc(j.kind)}</span></div>
+    <div class="muted mono">${words[j.status]}${j.to ? ' · email to ' + esc(j.to) : ''} · ${esc(j.by)} ${esc(j.queued_at)}</div>
+    ${j.error ? `<div class="err">${esc(j.error)}</div>` : ''}</div>
+    ${j.file ? `<a class="btn quiet small" href="/download/${encodeURIComponent(j.file)}">Download</a>` : ''}</div>`).join('');
+}
+{% if jobs %}poll();{% endif %}
+</script>
+{% endblock %}
