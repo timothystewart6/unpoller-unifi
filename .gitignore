@@ -6,6 +6,8 @@ prometheus/data/*
 !prometheus/data/.gitkeep
 loki/data/*
 !loki/data/.gitkeep
+reporter/out/*
+!reporter/out/.gitkeep
 
 # Backups of config files, e.g. unpoller/.env.bak, can hold credentials
 *.bak

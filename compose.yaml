@@ -57,6 +57,21 @@ services:
       - ./loki/config:/etc/loki
       - ./loki/data:/loki
 
+  # weekly/monthly/quarterly PDF reports from prometheus + loki (see reporter/report.py)
+  # run one by hand: docker compose exec reporter python report.py run weekly --no-email
+  reporter:
+    build: ./reporter
+    restart: unless-stopped
+    container_name: reporter
+    user: "${UID:-1000}:${GID:-1000}"
+    env_file:
+      - ./reporter/.env
+    volumes:
+      - ./reporter/out:/out
+    depends_on:
+      - prometheus
+      - loki
+
 # optional log viewer for docker containers
   dozzle:
     image: amir20/dozzle:latest
