@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block body %}
+<style>
+.sections { display: grid; gap: 24px; max-width: 760px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.grid3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0 16px; }
+.panel p.intro { color: var(--ink-2); margin: -4px 0 16px; }
+.bar { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+.bar .field { flex: 1; min-width: 220px; margin: 0; }
+@media (max-width: 640px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+</style>
+
+<h1>Settings</h1>
+<p class="lede">Email and schedule for the automatic reports. Only Grafana admins can see this page</p>
+
+<form method="post" class="sections">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+
+  <section class="panel">
+    <h2>Email server</h2>
+    <p class="intro">For Gmail use smtp.gmail.com, port 587, STARTTLS, and an app password from your Google account, not your normal password</p>
+    <div class="grid3">
+      <div class="field"><label for="host">SMTP server</label><input type="text" id="host" name="host" value="{{ s.smtp.host }}" placeholder="smtp.gmail.com"></div>
+      <div class="field"><label for="port">Port</label><input type="number" id="port" name="port" value="{{ s.smtp.port }}"></div>
+      <div class="field"><label for="sec">Security</label>
+        <select id="sec" name="security">
+          {% for v, l in [('starttls','STARTTLS'),('ssl','SSL/TLS'),('none','None')] %}
+          <option value="{{ v }}" {{ 'selected' if s.smtp.security == v }}>{{ l }}</option>
+          {% endfor %}
+        </select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="user">Username</label><input type="text" id="user" name="user" value="{{ s.smtp.user }}" autocomplete="off"></div>
+      <div class="field"><label for="pw">Password</label><input type="password" id="pw" name="password" autocomplete="new-password" placeholder="{{ 'Saved, leave blank to keep' if has_password else '' }}">
+        {% if has_password %}<label class="check" style="margin-top:6px;font-size:13px"><input type="checkbox" name="clear_password"> Remove saved password</label>{% endif %}</div>
+    </div>
+    <div class="field" style="margin:0"><label for="from">Send as</label><input type="text" id="from" name="from" value="{{ s.smtp.from }}" placeholder="Network reports &lt;reports@example.com&gt;">
+      <div class="hint">Leave blank to send from the username</div></div>
+  </section>
+
+  <section class="panel">
+    <h2>Who gets each report</h2>
+    <p class="intro">Separate addresses with commas. Leave a report empty to only save it in the portal</p>
+    {% for k, l in [('weekly','Weekly'),('monthly','Monthly'),('quarterly','Quarterly')] %}
+    <div class="field" {% if loop.last %}style="margin:0"{% endif %}><label for="to_{{ k }}">{{ l }}</label><input type="text" id="to_{{ k }}" name="to_{{ k }}" value="{{ s.recipients[k] }}"></div>
+    {% endfor %}
+  </section>
+
+  <section class="panel">
+    <h2>Schedule</h2>
+    <label class="check"><input type="checkbox" name="enabled" {{ 'checked' if s.schedule.enabled }}> Make reports automatically</label>
+    <div style="margin:8px 0 16px 24px">
+      {% for k, l in [('weekly','Weekly, every Monday'),('monthly','Monthly, on the 1st'),('quarterly','Quarterly, on 1 Jan, Apr, Jul and Oct')] %}
+      <label class="check"><input type="checkbox" name="auto_{{ k }}" {{ 'checked' if k in s.schedule.kinds }}> {{ l }}</label>
+      {% endfor %}
+    </div>
+    <div class="field" style="max-width:220px;margin:0"><label for="hour">Send at</label>
+      <select id="hour" name="hour">
+        {% for h in range(24) %}<option value="{{ h }}" {{ 'selected' if s.schedule.hour == h }}>{{ '%02d:00'|format(h) }}</option>{% endfor %}
+      </select>
+      <div class="hint">Local time, Africa/Accra</div></div>
+  </section>
+
+  <section class="panel">
+    <div class="bar">
+      <button class="btn primary" name="action" value="save">Save settings</button>
+      <span class="muted">or</span>
+      <div class="field"><label for="tt">Save and send a test email to</label><input type="text" id="tt" name="test_to" placeholder="you@example.com"></div>
+      <button class="btn quiet" name="action" value="test">Send test</button>
+    </div>
+  </section>
+</form>
+{% endblock %}

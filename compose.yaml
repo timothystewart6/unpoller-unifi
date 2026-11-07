@@ -57,8 +57,9 @@ services:
       - ./loki/config:/etc/loki
       - ./loki/data:/loki
 
-  # weekly/monthly/quarterly PDF reports from prometheus + loki (see reporter/report.py)
-  # run one by hand: docker compose exec reporter python report.py run weekly --no-email
+  # weekly/monthly/quarterly PDF reports from prometheus + loki, with a web portal on :8088
+  # (sign in with a Grafana account; Grafana admins set up email and the schedule there)
+  # command line: docker compose exec reporter python report.py run weekly --no-email
   reporter:
     build: ./reporter
     restart: unless-stopped
@@ -66,11 +67,14 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     env_file:
       - ./reporter/.env
+    ports:
+      - '8088:8088'
     volumes:
       - ./reporter/out:/out
     depends_on:
       - prometheus
       - loki
+      - grafana
 
 # optional log viewer for docker containers
   dozzle:

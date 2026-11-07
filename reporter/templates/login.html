@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block body %}
+<div style="max-width:360px;margin:12vh auto 0">
+  <p class="muted" style="margin:0 0 4px">{{ network }}</p>
+  <h1>Network reports</h1>
+  <p class="lede">Sign in with your Grafana account</p>
+  <form method="post" class="panel">
+    {% if error %}<p class="flash" style="border-color:var(--bad)">{{ error }}</p>{% endif %}
+    <div class="field"><label for="u">Username or email</label><input id="u" name="username" type="text" autocomplete="username" required autofocus></div>
+    <div class="field"><label for="p">Password</label><input id="p" name="password" type="password" autocomplete="current-password" required></div>
+    <button class="btn primary" style="width:100%">Sign in</button>
+  </form>
+</div>
+{% endblock %}

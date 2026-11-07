@@ -506,63 +506,144 @@ def build(kind, end=None, start=None):
         errors=cur.errors + prev.errors, gap=gap, max_client=max([c["bytes"] for c in d["top_clients"]] or [1]),
     )
     OUT.mkdir(parents=True, exist_ok=True)
-    stem = f"{kind}-{start:%Y-%m-%d}" + (f"-to-{end - dt.timedelta(days=1):%Y-%m-%d}" if kind == "custom" else "")
-    (OUT / f"{stem}.html").write_text(html_out)
-    from weasyprint import HTML  # imported late: slow to load, not needed by `serve` until a report is due
-    HTML(string=html_out, base_url=str(HERE)).write_pdf(OUT / f"{stem}.pdf")
-    log.info("wrote %s.pdf (%d query errors)", OUT / stem, len(cur.errors + prev.errors))
-    return OUT / f"{stem}.pdf", f"{NETWORK}: {title} report ({dates})", summary(d, p, word, covered)
+    pdf = report_path(kind, start, end)
+    from weasyprint import HTML  # imported late: slow to load, not needed until a report is due
+    tmp = pdf.with_suffix(".part")
+    HTML(string=html_out, base_url=str(HERE)).write_pdf(tmp)
+    tmp.replace(pdf)  # appears in the portal only once complete
+    log.info("wrote %s (%d query errors)", pdf, len(cur.errors + prev.errors))
+    name = f"{title} report" if kind != "custom" else f"report for {title}"
+    return pdf, f"{NETWORK}: {name} ({dates})", summary(d, p, word, covered)
 
 
-def email(pdf, subject, lines):
-    host, to = os.environ.get("SMTP_HOST"), os.environ.get("REPORT_TO")
-    if not host or not to:
-        log.info("SMTP_HOST/REPORT_TO not set, skipping email")
-        return
+# ---------------------------------------------------------------- settings
+
+SETTINGS = OUT / "settings.json"
+
+
+def default_settings():
+    """First-run values come from the environment; after that settings.json wins."""
+    env = os.environ.get
+    to = env("REPORT_TO", "")
+    return {
+        "smtp": {"host": env("SMTP_HOST", ""), "port": int(env("SMTP_PORT", 587)),
+                 "security": env("SMTP_SECURITY", "starttls"), "user": env("SMTP_USER", ""),
+                 "password": env("SMTP_PASSWORD", ""), "from": env("SMTP_FROM", "")},
+        "recipients": {k: to for k in ("weekly", "monthly", "quarterly")},
+        "schedule": {"enabled": True, "hour": int(env("SEND_HOUR", 7)),
+                     "kinds": env("REPORTS", "weekly,monthly,quarterly").split(",")},
+    }
+
+
+def load_settings():
+    s = default_settings()
+    try:
+        saved = json.loads(SETTINGS.read_text())
+        for k in s:
+            s[k].update(saved.get(k, {}))
+    except FileNotFoundError:
+        pass
+    return s
+
+
+def save_settings(s):
+    OUT.mkdir(parents=True, exist_ok=True)
+    tmp = SETTINGS.with_suffix(".tmp")
+    tmp.write_text(json.dumps(s, indent=2))
+    os.chmod(tmp, 0o600)  # holds the SMTP password
+    tmp.replace(SETTINGS)
+
+
+def split_addresses(text):
+    return [a.strip() for a in re.split(r"[,;\s]+", text or "") if a.strip()]
+
+
+# ---------------------------------------------------------------- email
+
+def send_mail(to, subject, text, html_body=None, attachment=None, smtp=None):
+    smtp = smtp or load_settings()["smtp"]
+    if not smtp.get("host"):
+        raise RuntimeError("no SMTP server is set up")
+    to = split_addresses(to) if isinstance(to, str) else to
+    if not to:
+        raise RuntimeError("no recipients")
     msg = EmailMessage()
-    msg["Subject"], msg["From"], msg["To"] = subject, os.environ.get("SMTP_FROM", os.environ.get("SMTP_USER")), to
-    msg.set_content("\n\n".join(lines) + "\n\nThe full report is attached.")
-    msg.add_alternative("".join(f"<p>{html.escape(x)}</p>" for x in lines)
-                        + "<p style='color:#6b6a66'>The full report is attached.</p>", subtype="html")
-    msg.add_attachment(pdf.read_bytes(), maintype="application", subtype="pdf", filename=pdf.name)
-    with smtplib.SMTP(host, int(os.environ.get("SMTP_PORT", 587)), timeout=60) as s:
-        s.starttls()
-        if os.environ.get("SMTP_USER"):
-            s.login(os.environ["SMTP_USER"], os.environ["SMTP_PASSWORD"])
-        s.send_message(msg)
-    log.info("emailed %s to %s", pdf.name, to)
+    msg["Subject"], msg["From"], msg["To"] = subject, smtp.get("from") or smtp.get("user"), ", ".join(to)
+    msg.set_content(text)
+    if html_body:
+        msg.add_alternative(html_body, subtype="html")
+    if attachment:
+        msg.add_attachment(attachment.read_bytes(), maintype="application", subtype="pdf", filename=attachment.name)
+    port, sec = int(smtp.get("port") or 587), smtp.get("security", "starttls")
+    cls = smtplib.SMTP_SSL if sec == "ssl" else smtplib.SMTP
+    with cls(smtp["host"], port, timeout=60) as c:
+        if sec == "starttls":
+            c.starttls()
+        if smtp.get("user"):
+            c.login(smtp["user"], smtp.get("password", ""))
+        c.send_message(msg)
+    log.info("emailed %r to %s", subject, ", ".join(to))
 
 
-def run(kind, end=None, send=True, start=None):
+def email_report(pdf, subject, lines, to):
+    send_mail(to, subject, "\n\n".join(lines) + "\n\nThe full report is attached.",
+              "".join(f"<p>{html.escape(x)}</p>" for x in lines)
+              + "<p style='color:#6b6a66'>The full report is attached.</p>", pdf)
+
+
+def run(kind, end=None, send=True, start=None, to=None):
+    """Build a report; email it to `to`, or to the kind's recipients when send=True."""
     pdf, subject, lines = build(kind, end, start)
-    if send:
+    if to is None and send:
+        to = load_settings()["recipients"].get(kind, "")
+    if to:
         try:
-            email(pdf, subject, lines)
+            email_report(pdf, subject, lines, to)
         except Exception:  # noqa: BLE001 - the PDF is saved either way
             log.exception("email failed; report kept at %s", pdf)
+            raise
+    return pdf
+
+
+def report_path(kind, start, end=None):
+    stem = f"{kind}-{start:%Y-%m-%d}"
+    if kind == "custom":
+        stem += f"-to-{end - dt.timedelta(days=1):%Y-%m-%d}"
+    return OUT / f"{stem}.pdf"
+
+
+def due_reports(now=None):
+    """Scheduled reports whose period has closed, it's past the send hour, and no
+    PDF exists yet. Only periods ending after the scheduler first started count,
+    so a fresh install doesn't back-fill old periods it has little data for."""
+    now = now or dt.datetime.now(TZ)
+    st = load_settings()["schedule"]
+    if not st.get("enabled"):
+        return []
+    OUT.mkdir(parents=True, exist_ok=True)
+    since_file = OUT / ".scheduler-since"
+    if not since_file.exists():
+        since_file.write_text(now.isoformat())
+    since = dt.datetime.fromisoformat(since_file.read_text().strip())
+    due = []
+    for kind in st.get("kinds", []):
+        if kind not in ("weekly", "monthly", "quarterly"):
+            continue
+        end = period_end(kind, now)
+        if end > since and now.hour >= int(st.get("hour", 7)) and not report_path(kind, period_start(kind, end)).exists():
+            due.append((kind, end))
+    return due
 
 
 def serve():
-    """Every 10 minutes: for each kind, if the last closed period has no PDF yet
-    and it's past SEND_HOUR local time, build and send it. Restarts are safe."""
-    hour = int(os.environ.get("SEND_HOUR", 7))
-    kinds = os.environ.get("REPORTS", "weekly,monthly,quarterly").split(",")
-    OUT.mkdir(parents=True, exist_ok=True)
-    since_file = OUT / ".scheduler-since"
-    if not since_file.exists():  # first start: don't back-fill old periods with little or no data
-        since_file.write_text(dt.datetime.now(TZ).isoformat())
-    since = dt.datetime.fromisoformat(since_file.read_text().strip())
-    log.info("scheduler up: %s at %02d:00 %s, periods ending after %s, output %s",
-             ",".join(kinds), hour, TZ, since.date(), OUT)
+    """Scheduler only (no portal): check every 10 minutes."""
+    log.info("scheduler up, output %s", OUT)
     while True:
-        now = dt.datetime.now(TZ)
-        for kind in kinds:
-            end = period_end(kind, now)
-            if end > since and now.hour >= hour and not (OUT / f"{kind}-{period_start(kind, end):%Y-%m-%d}.pdf").exists():
-                try:
-                    run(kind, end)
-                except Exception:  # noqa: BLE001 - retry on the next tick
-                    log.exception("%s report failed, retrying in 10 minutes", kind)
+        for kind, end in due_reports():
+            try:
+                run(kind, end)
+            except Exception:  # noqa: BLE001 - retry on the next tick
+                log.exception("%s report failed, retrying in 10 minutes", kind)
         time.sleep(600)
 
 
@@ -585,7 +666,7 @@ def main():
             if not a.start:
                 ap.error("custom reports need --start (and optionally --end, default today)")
             end = day(a.end) + dt.timedelta(days=1) if a.end else dt.datetime.now(TZ)
-            run("custom", end, send=not a.no_email, start=day(a.start))
+            run("custom", end, send=False, start=day(a.start))
         else:
             # --end names the last day of the period; internally the end is exclusive
             end = day(a.end) + dt.timedelta(days=1) if a.end else None
