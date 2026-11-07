@@ -6,6 +6,13 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     env_file:
       - ./prometheus/.env
+    # keep 400 days of metrics so monthly/quarterly reports have data;
+    # the size cap deletes the oldest data first if disk use passes 20GB
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=400d
+      - --storage.tsdb.retention.size=20GB
     ports:
       - '9090:9090'
     volumes:
