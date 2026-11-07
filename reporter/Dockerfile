@@ -8,7 +8,8 @@ WORKDIR /app
 COPY report.py portal.py template.html ./
 COPY templates ./templates
 COPY fonts ./fonts
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    XDG_CACHE_HOME=/tmp/cache
 EXPOSE 8088
 # web portal + report worker + scheduler in one process
 CMD ["python", "portal.py"]
