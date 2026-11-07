@@ -30,6 +30,14 @@
   </section>
 
   <section class="panel">
+    <h2>Time zone</h2>
+    <div class="field" style="margin:0;max-width:360px"><label for="timezone">Used for report periods, times in reports and the send time</label>
+      <input type="text" id="timezone" name="timezone" list="tzlist" value="{{ s.general.timezone }}" autocomplete="off" required>
+      <datalist id="tzlist">{% for z in timezones %}<option value="{{ z }}">{% endfor %}</datalist>
+      <div class="hint">Start typing a city, e.g. Accra, London, New_York. A week runs Monday 00:00 to Sunday 24:00 in this zone</div></div>
+  </section>
+
+  <section class="panel">
     <h2>What to include</h2>
     <p class="intro">Applies to every report, scheduled or made by hand</p>
     <div class="incl">

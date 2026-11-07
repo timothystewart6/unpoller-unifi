@@ -87,6 +87,7 @@ tr { break-inside: avoid; }
 .rank td { border: 0; padding: 3pt 8pt 3pt 0; }
 .rank .bar { height: 4px; background: var(--bar); border-radius: 2px; margin-top: 3pt; }
 .rank td.name { width: 100%; }
+.rank .name .detail { font: 7pt PlexMono; color: var(--ink-3); }
 .rank .name span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .empty { color: var(--ink-3); font-size: 9pt; }
 
@@ -207,7 +208,7 @@ tr { break-inside: avoid; }
       <table class="rank">
         {% for c in d.top_clients %}
         <tr>
-          <td class="name"><span>{{ c.name }}</span><div class="bar" style="width:{{ (c.bytes / max_client * 100)|round(1) }}%"></div></td>
+          <td class="name"><span>{{ c.name }}</span>{% if c.detail %}<span class="detail">{{ c.detail }}</span>{% endif %}<div class="bar" style="width:{{ (c.bytes / max_client * 100)|round(1) }}%"></div></td>
           <td class="n mono">{{ c.bytes|bytes }}</td>
         </tr>
         {% endfor %}

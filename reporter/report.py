@@ -28,7 +28,8 @@ from jinja2 import Environment, FileSystemLoader
 
 PROM = os.environ.get("PROM_URL", "http://prometheus:9090")
 LOKI = os.environ.get("LOKI_URL", "http://loki:3100")
-TZ = ZoneInfo(os.environ.get("TZ", "Africa/Accra"))
+# Report time zone. Starts from $TZ; the portal's setting overrides it (see load_settings).
+TZ = ZoneInfo(os.environ.get("TZ") or "UTC")
 OUT = Path(os.environ.get("OUT_DIR", "/out"))
 HERE = Path(__file__).parent
 log = logging.getLogger("reporter")
@@ -208,16 +209,22 @@ def collect(s: Source):
     d["clients_unique"] = s.scalar(f"count(count by (mac) (last_over_time({clients}[$R])))")
     d["clients_new"] = s.scalar(f"count(count by (mac) (last_over_time({clients}[$R])) "
                                 f"unless count by (mac) (last_over_time({clients}[$R] offset $R)))")
-    rx = s.prom("sum by (mac, name, oui) (increase(unpoller_client_receive_bytes_total[$R]))") or []
+    rx = s.by("sum by (mac) (increase(unpoller_client_receive_bytes_total[$R]))", "mac")
     tx = s.by("sum by (mac) (increase(unpoller_client_transmit_bytes_total[$R]))", "mac")
-    top = []
-    for x in rx:
+    # identity as last seen in the period: names repeat (Mac, iPhone…), so each row
+    # also gets the end of its MAC, its IP and its network to tell them apart
+    info = {}
+    for x in s.prom(f"last_over_time({clients}[$R])") or []:
         m = x["metric"]
-        name = m.get("name") or m.get("mac", "")
-        if re.fullmatch(r"([0-9a-f]{2}:){5}[0-9a-f]{2}", name) and m.get("oui"):
-            name = f"{m['oui']} device"  # no hostname: say what it is, keep the MAC as detail
-        top.append({"name": name, "mac": m.get("mac", ""),
-                    "bytes": float(x["value"][1]) + tx.get(m.get("mac"), 0)})
+        info[m.get("mac", "")] = m
+    top = []
+    for mac in set(rx) | set(tx):
+        m = info.get(mac, {})
+        name = m.get("name") or mac
+        if re.fullmatch(r"([0-9a-f]{2}:){5}[0-9a-f]{2}", name):
+            name = f"{m['oui']} device" if m.get("oui") else "Unnamed device"
+        detail = " · ".join(x for x in (mac[-5:], m.get("ip", ""), m.get("network", "")) if x)
+        top.append({"name": name, "mac": mac, "detail": detail, "bytes": rx.get(mac, 0) + tx.get(mac, 0)})
     d["top_clients"] = sorted(top, key=lambda c: -c["bytes"])[:10]
 
     # access points
@@ -502,12 +509,12 @@ def attention(d, on=None):
 # ---------------------------------------------------------------- build
 
 def build(kind, end=None, start=None):
+    st = load_settings()  # applies the time zone before any dates are worked out
     end = end or period_end(kind, dt.datetime.now(TZ))
     start = start or period_start(kind, end)
     prev_start = period_start(kind, start, end - start)
     word = KINDS[kind]
     title, dates = period_label(kind, start, end)
-    st = load_settings()
     name = st["general"]["name"].strip()
     on = {k for k, v in st["sections"].items() if v}
     log.info("building %s report %s (%s), sections: %s", kind, title, dates, ",".join(sorted(on)))
@@ -565,7 +572,7 @@ def default_settings():
     env = os.environ.get
     to = env("REPORT_TO", "")
     return {
-        "general": {"name": env("REPORT_NAME", "")},
+        "general": {"name": env("REPORT_NAME", ""), "timezone": env("TZ") or "UTC"},
         "sections": {k: True for k, *_ in SECTIONS},
         "smtp": {"host": env("SMTP_HOST", ""), "port": int(env("SMTP_PORT", 587)),
                  "security": env("SMTP_SECURITY", "starttls"), "user": env("SMTP_USER", ""),
@@ -584,7 +591,23 @@ def load_settings():
             s[k].update(saved.get(k, {}))
     except FileNotFoundError:
         pass
+    set_timezone(s["general"]["timezone"])
     return s
+
+
+def set_timezone(name):
+    """Every date in reports and the portal goes through TZ, so switching it here
+    is enough. An unknown name leaves the current zone in place."""
+    global TZ
+    try:
+        TZ = ZoneInfo(name)
+    except (ValueError, KeyError, OSError):
+        log.warning("unknown time zone %r, keeping %s", name, TZ)
+
+
+def timezones():
+    from zoneinfo import available_timezones
+    return sorted(z for z in available_timezones() if "/" in z and not z.startswith(("Etc/", "SystemV/", "posix/", "right/"))) + ["UTC"]
 
 
 def display_name(s=None):
@@ -662,8 +685,8 @@ def due_reports(now=None):
     """Scheduled reports whose period has closed, it's past the send hour, and no
     PDF exists yet. Only periods ending after the scheduler first started count,
     so a fresh install doesn't back-fill old periods it has little data for."""
+    st = load_settings()["schedule"]  # first: applies the time zone
     now = now or dt.datetime.now(TZ)
-    st = load_settings()["schedule"]
     if not st.get("enabled"):
         return []
     OUT.mkdir(parents=True, exist_ok=True)
@@ -694,6 +717,7 @@ def serve():
 
 
 def main():
+    load_settings()  # applies the configured time zone to command-line runs too
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", stream=sys.stdout)
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)

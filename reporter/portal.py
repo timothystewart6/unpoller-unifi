@@ -250,6 +250,7 @@ def schedule_text(sch):
 def generate():
     f = request.form
     kind = f.get("kind")
+    R.load_settings()  # applies the configured time zone
     now = dt.datetime.now(R.TZ)
     day = lambda x: dt.datetime.combine(dt.date.fromisoformat(x), dt.time(), R.TZ)
     try:
@@ -322,6 +323,11 @@ def settings():
             flash("Pick at least one thing to include in the reports")
             return redirect(url_for("settings"))
         s["general"]["name"] = f.get("name", "").strip()[:60]
+        tz = f.get("timezone", "").strip()
+        if tz not in R.timezones():
+            flash(f"Unknown time zone {tz!r}. Pick one from the list, e.g. Europe/London or UTC")
+            return redirect(url_for("settings"))
+        s["general"]["timezone"] = tz
         s["sections"] = sections
         s["smtp"].update(host=f.get("host", "").strip(), port=port, security=f.get("security", "starttls"),
                          user=f.get("user", "").strip(), **{"from": f.get("from", "").strip()})
@@ -345,7 +351,8 @@ def settings():
             except Exception as e:  # noqa: BLE001
                 flash(f"Test email failed: {e}")
         return redirect(url_for("settings"))
-    return render_template("settings.html", s=s, has_password=bool(s["smtp"].get("password")), sections=R.SECTIONS)
+    return render_template("settings.html", s=s, has_password=bool(s["smtp"].get("password")), sections=R.SECTIONS,
+                           timezones=R.timezones())
 
 
 # ---------------------------------------------------------------- main
