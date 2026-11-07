@@ -428,7 +428,7 @@ def svg_chart(down, up, kind, start, end, w=658, h=236):
 SECTIONS = [
     ("summary", "Summary", "A few plain-language sentences and anything that needs attention"),
     ("figures", "Headline numbers", "Data downloaded, peak devices, blocks and threats, with the change from last time"),
-    ("downloaded", "Data downloaded", "The Downloaded headline number and the download sentence in the summary"),
+    ("downloaded", "Data downloaded", "Data downloaded and uploaded: the headline number, the summary sentence and the Internet and gateway rows"),
     ("gap_note", "Missing-data note", "A note when metrics weren't collected for part of the period"),
     ("throughput", "Internet throughput chart", "Download and upload over the period"),
     ("internet", "Internet and gateway", "Data used, latency, failovers, internet lines, gateway CPU, memory and temperature"),

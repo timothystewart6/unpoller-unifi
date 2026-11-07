@@ -163,8 +163,10 @@ tr { break-inside: avoid; }
   <h2>Internet and gateway</h2>
   <div class="cols">
     <table class="kv">
+      {% if 'downloaded' in on %}
       <tr><td>Downloaded</td><td class="n">{{ d.wan_down|bytes }}</td></tr>
       <tr><td>Uploaded</td><td class="n">{{ d.wan_up|bytes }}</td></tr>
+      {% endif %}
       <tr><td>Download, 95th percentile</td><td class="n">{{ d.wan_p95|bits }}</td></tr>
       <tr><td>Latency, average</td><td class="n">{% if d.latency_avg is not none %}{{ '%.0f'|format(d.latency_avg * 1000) }} ms{% else %}–{% endif %}</td></tr>
       <tr><td>Latency, worst</td><td class="n">{% if d.latency_max is not none %}{{ '%.0f'|format(d.latency_max * 1000) }} ms{% else %}–{% endif %}</td></tr>
